@@ -1,0 +1,22 @@
+{
+    "name": "Wordle Universalis",
+    "id": "wordle.universalis",
+    "version": "1.0",
+    "supported_game_version": "",
+    "short_description": "A Wordle and Connections mod for Europa Universalis V",
+    "tags": [
+        "Gameplay",
+        "User Interface"
+    ],
+    "relationships": [
+        {
+            "rel_type": "dependency",
+            "id": "community_mod_framework",
+            "display_name": "Community Mod Framework",
+            "resource_type": "mod",
+            "version": "2.*"
+        }
+    ],
+    "game_custom_data": {},
+    "game_id": "eu5"
+}

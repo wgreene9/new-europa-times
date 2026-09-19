@@ -1,0 +1,7 @@
+﻿l_english:
+ # Mod
+ wordle_universalis_name: "Wordle Universalis"
+ wordle_universalis_desc: "A Wordle and Connections mod for Europa Universalis V"
+
+ # Optional: self-referencing flag keys to suppress IDE warnings (safe to remove if you want)
+ wordle_universalis: "wordle_universalis"
