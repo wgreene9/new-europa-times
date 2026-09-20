@@ -1,4 +1,4 @@
-# \[Insert Mod Repo Name\]
+# \[Wordle Universalis\]
 
 \[A Wordle and Connections mod for Europa Universalis V\]
 
