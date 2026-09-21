@@ -4,11 +4,9 @@ name: Daily Solution Update
 # commits to main, then hands off to the toolkit's Create Release workflow so the
 # dev Workshop item picks the update up.
 #
-# TIMING: NYT puzzles roll over at midnight US Eastern. The 01:05 UTC schedule
-# below fires ~3 hours BEFORE that, so tools/update_solutions.py polls until the
-# new day is published (see WAIT_MINUTES). Moving the cron to "5 5 * * *"
-# (01:05 ET during EDT) would let the run start with both puzzles already live
-# and drop the wait to zero.
+# Both puzzles come from the NYT service keyed by print date, and both are
+# populated well ahead of the midnight US Eastern rollover, so the 01:05 UTC
+# schedule can ask for its own UTC date and get an answer straight away.
 
 on:
   schedule:
@@ -19,11 +17,6 @@ on:
         description: 'Puzzle date (YYYY-MM-DD). Blank uses the run date in UTC.'
         required: false
         default: ''
-        type: string
-      wait-minutes:
-        description: 'Minutes to poll for a puzzle that has not gone live yet. 0 fails fast.'
-        required: false
-        default: '0'
         type: string
       trigger-release:
         description: 'Trigger cmt-create-release.yml when the update is committed'
@@ -38,16 +31,11 @@ concurrency:
   group: solution-update-${{ github.repository }}
   cancel-in-progress: false
 
-env:
-  # Scheduled runs start before the puzzles exist, so they have to wait them out.
-  # 210 min covers 01:05 UTC -> just past midnight US Eastern in either DST offset.
-  WAIT_MINUTES: ${{ inputs.wait-minutes || '210' }}
-
 jobs:
   update-solutions:
     name: "Update Solutions"
     runs-on: ubuntu-latest
-    timeout-minutes: 300
+    timeout-minutes: 15
     outputs:
       version: ${{ steps.solutions.outputs.version }}
       date: ${{ steps.solutions.outputs.date }}
@@ -64,17 +52,13 @@ jobs:
         with:
           python-version: '3.12'
 
-        # Fetches the Wordle answer from the NYT puzzle service and the Connections
-        # groups from Eyefyre/NYT-Connections-Answers, rewrites
+        # Fetches the Wordle answer and the Connections categories from the NYT
+        # puzzle service, rewrites
         # main_menu/localization/english/wu_solutions_l_english.yml, and sets the
         # metadata.json version to YY.MMDD for the puzzle date.
       - name: Fetch Solutions and Update the Mod
         id: solutions
-        run: |
-          python3 tools/update_solutions.py \
-            --date "${{ inputs.date }}" \
-            --wait-minutes "$WAIT_MINUTES" \
-            --poll-seconds 300
+        run: python3 tools/update_solutions.py --date "${{ inputs.date }}"
 
       - name: Commit to main
         id: commit

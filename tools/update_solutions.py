@@ -10,17 +10,16 @@ Driven by .github/workflows/solution-update.yml, but runnable by hand:
 What it does:
 
   1. Fetches the Wordle answer from the NYT puzzle service.
-  2. Fetches the Connections groups from the NYT-Connections-Answers repo.
+  2. Fetches the Connections categories from the NYT puzzle service.
   3. Rewrites main_menu/localization/english/wu_solutions_l_english.yml with
      the new keys, replacing the previous day's.
   4. Rewrites the "version" value in .metadata/metadata.json to YY.MMDD.
 
 Standard library only - nothing to install on the runner.
 
-NOTE ON TIMING: NYT puzzles roll over at midnight US Eastern. The scheduled
-run fires at 01:05 UTC, which is ~3 hours *before* that rollover, so the
-Connections repo will not have the target day yet. --wait-minutes makes the
-script poll until it appears rather than failing immediately.
+Both endpoints are keyed by print date and are populated well ahead of time
+(weeks, in practice), so the run does not have to wait for the midnight US
+Eastern rollover - asking for a date that has not been played yet is fine.
 """
 
 from __future__ import annotations
@@ -36,10 +35,7 @@ import urllib.error
 import urllib.request
 
 WORDLE_URL = "https://www.nytimes.com/svc/wordle/v2/{date}.json"
-CONNECTIONS_URL = (
-    "https://raw.githubusercontent.com/"
-    "Eyefyre/NYT-Connections-Answers/main/connections.json"
-)
+CONNECTIONS_URL = "https://www.nytimes.com/svc/connections/v2/{date}.json"
 
 USER_AGENT = "wordle-universalis-solution-update/1.0 (+github-actions)"
 
@@ -76,9 +72,10 @@ def fetch_json(url: str, *, attempts: int = 4, backoff: float = 5.0):
                 return json.loads(response.read().decode("utf-8"))
         except urllib.error.HTTPError as error:
             last = error
-            # 404 on a puzzle that is not published yet is not worth hammering.
+            # A puzzle that is not in the service yet answers 404; no point
+            # hammering it, and neither is any other 4xx worth a retry.
             if error.code == 404:
-                raise SolutionError(f"{url} returned 404 (not published yet?)") from error
+                raise SolutionError(f"{url} returned 404 (no puzzle for that date)") from error
             if error.code < 500 and error.code != 429:
                 raise SolutionError(f"{url} returned HTTP {error.code}") from error
         except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as error:
@@ -90,30 +87,29 @@ def fetch_json(url: str, *, attempts: int = 4, backoff: float = 5.0):
     raise SolutionError(f"Could not fetch {url}: {last}")
 
 
-def fetch_wordle(date: dt.date, *, wait_minutes: float, poll_seconds: float) -> dict:
-    """Return the Wordle payload for `date`, waiting for it to go live if asked."""
-    url = WORDLE_URL.format(date=date.isoformat())
-    deadline = time.monotonic() + wait_minutes * 60.0
-    while True:
-        try:
-            payload = fetch_json(url)
-            break
-        except SolutionError as error:
-            if time.monotonic() >= deadline:
-                raise
-            print(f"  Wordle for {date} not available yet ({error}).", flush=True)
-            print(f"  Waiting {poll_seconds:.0f}s...", flush=True)
-            time.sleep(poll_seconds)
+def check_print_date(payload: dict, date: dt.date, what: str) -> None:
+    """Refuse a payload that is not the day we asked for.
+
+    The whole point of the date in the URL is that it selects the puzzle. If the
+    service ever answers with a different print_date, publishing it would put the
+    wrong day's answers in front of players, so stop instead.
+    """
+    printed = str(payload.get("print_date", "")).strip()
+    if printed and printed != date.isoformat():
+        raise SolutionError(
+            f"{what} service was asked for {date} but answered with print_date "
+            f"{printed!r}. Refusing to publish a different day's puzzle."
+        )
+
+
+def fetch_wordle(date: dt.date) -> dict:
+    """Return the Wordle answer for `date`."""
+    payload = fetch_json(WORDLE_URL.format(date=date.isoformat()))
+    check_print_date(payload, date, "Wordle")
 
     solution = str(payload.get("solution", "")).strip()
     if not solution.isalpha():
         raise SolutionError(f"Wordle payload for {date} has no usable solution: {payload!r}")
-
-    printed = str(payload.get("print_date", "")).strip()
-    if printed and printed != date.isoformat():
-        raise SolutionError(
-            f"Wordle service returned print_date {printed!r} when {date} was asked for."
-        )
 
     return {
         "solution": solution.upper(),
@@ -121,56 +117,38 @@ def fetch_wordle(date: dt.date, *, wait_minutes: float, poll_seconds: float) -> 
     }
 
 
-def fetch_connections(date: dt.date, *, wait_minutes: float, poll_seconds: float) -> dict:
-    """Return the Connections entry for `date`, polling until it is published."""
-    wanted = date.isoformat()
-    deadline = time.monotonic() + wait_minutes * 60.0
-    newest = "?"
+def fetch_connections(date: dt.date) -> dict:
+    """Return the four Connections categories for `date`."""
+    payload = fetch_json(CONNECTIONS_URL.format(date=date.isoformat()))
 
-    while True:
-        # Bust the raw.githubusercontent CDN cache so polling sees new commits.
-        url = f"{CONNECTIONS_URL}?nocache={int(time.time())}"
-        puzzles = fetch_json(url)
-        if not isinstance(puzzles, list) or not puzzles:
-            raise SolutionError("connections.json did not parse as a non-empty list.")
+    status = str(payload.get("status", "OK")).strip()
+    if status.upper() != "OK":
+        raise SolutionError(f"Connections service returned status {status!r} for {date}.")
 
-        # The newest day is appended at the end of the file, but scan the tail
-        # rather than trusting position alone.
-        for entry in reversed(puzzles):
-            if isinstance(entry, dict) and entry.get("date") == wanted:
-                return validate_connections(entry, date)
+    check_print_date(payload, date, "Connections")
 
-        newest = str(puzzles[-1].get("date", "?"))
-        if time.monotonic() >= deadline:
-            raise SolutionError(
-                f"No Connections entry for {wanted} in NYT-Connections-Answers "
-                f"(newest published: {newest}). NYT puzzles roll over at midnight "
-                f"US Eastern - either raise --wait-minutes or move the workflow "
-                f"schedule later."
-            )
+    # The service lists categories easiest-first (yellow, green, blue, purple)
+    # and carries no numeric difficulty field, so the given order is the order.
+    # Cards come alphabetically within a category; `position` (0-15) is the slot
+    # on the official shuffled board and is not used here.
+    categories = payload.get("categories")
+    if not isinstance(categories, list) or len(categories) != 4:
+        raise SolutionError(f"Connections payload for {date} does not have 4 categories: {payload!r}")
 
-        remaining = (deadline - time.monotonic()) / 60.0
-        print(
-            f"  Connections for {wanted} not published yet (newest: {newest}); "
-            f"retrying in {poll_seconds:.0f}s, {remaining:.0f} min left.",
-            flush=True,
-        )
-        time.sleep(poll_seconds)
+    groups = []
+    for category in categories:
+        title = str(category.get("title", "")).strip()
+        cards = category.get("cards")
+        if not title or not isinstance(cards, list) or len(cards) != 4:
+            raise SolutionError(f"Malformed Connections category for {date}: {category!r}")
 
+        members = [str(card.get("content", "")).strip() for card in cards]
+        if not all(members):
+            raise SolutionError(f"Empty card in Connections category {title!r} for {date}.")
 
-def validate_connections(entry: dict, date: dt.date) -> dict:
-    """Sort the four groups by difficulty and sanity-check the shape."""
-    answers = entry.get("answers")
-    if not isinstance(answers, list) or len(answers) != 4:
-        raise SolutionError(f"Connections entry for {date} does not have 4 groups: {entry!r}")
+        groups.append({"group": title, "members": members})
 
-    groups = sorted(answers, key=lambda a: a.get("level", 0))
-    for group in groups:
-        members = group.get("members")
-        if not group.get("group") or not isinstance(members, list) or len(members) != 4:
-            raise SolutionError(f"Malformed Connections group for {date}: {group!r}")
-
-    return {"id": entry.get("id", ""), "groups": groups}
+    return {"id": payload.get("id", ""), "groups": groups}
 
 
 # --------------------------------------------------------------------------- #
@@ -270,7 +248,9 @@ def emit_outputs(**values: object) -> None:
 # --------------------------------------------------------------------------- #
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     parser.add_argument(
         "--date",
         default="",
@@ -281,18 +261,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--repo-root",
         default=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         help="Repository root. Defaults to the parent of tools/.",
-    )
-    parser.add_argument(
-        "--wait-minutes",
-        type=float,
-        default=0.0,
-        help="How long to keep polling for a puzzle that is not published yet. 0 fails fast.",
-    )
-    parser.add_argument(
-        "--poll-seconds",
-        type=float,
-        default=300.0,
-        help="Seconds between polls while waiting (default: 300).",
     )
     parser.add_argument(
         "--dry-run",
@@ -321,14 +289,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Puzzle date: {date.isoformat()}  ->  version {version}")
 
     try:
-        # Connections is the laggard, so wait on it first; by the time it lands
-        # the Wordle answer for the same day is live too.
-        print("Fetching Connections...")
-        connections = fetch_connections(
-            date, wait_minutes=args.wait_minutes, poll_seconds=args.poll_seconds
-        )
         print("Fetching Wordle...")
-        wordle = fetch_wordle(date, wait_minutes=5, poll_seconds=60)
+        wordle = fetch_wordle(date)
+        print("Fetching Connections...")
+        connections = fetch_connections(date)
     except SolutionError as error:
         print(f"::error::{error}", file=sys.stderr)
         return 1
