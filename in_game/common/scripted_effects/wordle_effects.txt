@@ -1,0 +1,4100 @@
+#######################################
+# Wordle
+# 
+#	Variables
+#	1. board - wordle_cell_r_c => variable between 0-26, 0 is empty
+#	2. true / cached solution => 5 variables, 1-26
+#	3. keystates => 26 variables, 0-3 (white, yellow, green, grey) for the keyboard states -- wordle_keyboard_a
+#	4. Cursor => current row of gameplay, 1-6; also column cursor, 1-5
+#	5. Show => variables for every cell and every keyboard cell to store flags for letter & color
+#	
+#	Functionality
+#	1. Reset game when opened, if one isnt in progress OR the true solution has changed from the cached one
+#	2. 
+#######################################
+
+# Set all Show to blank white
+# TODO - reset keyboard cells
+wordle_reset_show = {
+	# cell
+	set_variable = { name = show_wordle_r1_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r1_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r1_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r1_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r1_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r2_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r2_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r2_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r2_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r2_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r3_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r3_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r3_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r3_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r3_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r4_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r4_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r4_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r4_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r4_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r5_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r5_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r5_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r5_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r5_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r6_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r6_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r6_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r6_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r6_c5 value = flag:blank_white }
+
+	# keyboard
+	set_variable = { name = show_keyboard_a value = flag:letter_A_white }
+	set_variable = { name = show_keyboard_b value = flag:letter_B_white }
+	set_variable = { name = show_keyboard_c value = flag:letter_C_white }
+	set_variable = { name = show_keyboard_d value = flag:letter_D_white }
+	set_variable = { name = show_keyboard_e value = flag:letter_E_white }
+	set_variable = { name = show_keyboard_f value = flag:letter_F_white }
+	set_variable = { name = show_keyboard_g value = flag:letter_G_white }
+	set_variable = { name = show_keyboard_h value = flag:letter_H_white }
+	set_variable = { name = show_keyboard_i value = flag:letter_I_white }
+	set_variable = { name = show_keyboard_j value = flag:letter_J_white }
+	set_variable = { name = show_keyboard_k value = flag:letter_K_white }
+	set_variable = { name = show_keyboard_l value = flag:letter_L_white }
+	set_variable = { name = show_keyboard_m value = flag:letter_M_white }
+	set_variable = { name = show_keyboard_n value = flag:letter_N_white }
+	set_variable = { name = show_keyboard_o value = flag:letter_O_white }
+	set_variable = { name = show_keyboard_p value = flag:letter_P_white }
+	set_variable = { name = show_keyboard_q value = flag:letter_Q_white }
+	set_variable = { name = show_keyboard_r value = flag:letter_R_white }
+	set_variable = { name = show_keyboard_s value = flag:letter_S_white }
+	set_variable = { name = show_keyboard_t value = flag:letter_T_white }
+	set_variable = { name = show_keyboard_u value = flag:letter_U_white }
+	set_variable = { name = show_keyboard_v value = flag:letter_V_white }
+	set_variable = { name = show_keyboard_w value = flag:letter_W_white }
+	set_variable = { name = show_keyboard_x value = flag:letter_X_white }
+	set_variable = { name = show_keyboard_y value = flag:letter_Y_white }
+	set_variable = { name = show_keyboard_z value = flag:letter_Z_white }
+	set_variable = { name = show_keyboard_backspace value = flag:enter_white }
+	set_variable = { name = show_keyboard_enter value = flag:backspace_white }
+}
+
+# Effect called upon opening window
+wordle_open_window = {
+	# Refresh the true solution
+	wordle_fetch_solution = yes
+	# if cache isnt set, reset the game
+	if = {
+		limit = {
+			has_variable = wordle_cached_id
+		}
+		# if game is not in progress, OR cached id differs from true id, reset the game
+		# else do nothing
+		if = {
+			limit = {
+				OR = {
+					NOT = { var:wordle_true_id = { compare_value = root.var:wordle_cached_id } }
+					NOT = { var:wordle_game = { compare_value = 0 } }
+				}
+			}
+
+			wordle_reset_game = yes
+		}
+	} else = {
+		wordle_reset_game = yes
+	}
+	
+}
+
+# Reset the game to its basic state
+wordle_reset_game = {
+	# set cached solution to true solution
+	set_variable = { name = wordle_cached_id value = var:wordle_true_id }
+	set_variable = { name = wordle_cached_1 value = var:wordle_true_1 }
+	set_variable = { name = wordle_cached_2 value = var:wordle_true_2 }
+	set_variable = { name = wordle_cached_3 value = var:wordle_true_3 }
+	set_variable = { name = wordle_cached_4 value = var:wordle_true_4 }
+	set_variable = { name = wordle_cached_5 value = var:wordle_true_5 }
+
+	# clear all 26 cells
+	set_variable = { name = wordle_cell_1_1 value = 0 }
+	set_variable = { name = wordle_cell_1_2 value = 0 }
+	set_variable = { name = wordle_cell_1_3 value = 0 }
+	set_variable = { name = wordle_cell_1_4 value = 0 }
+	set_variable = { name = wordle_cell_1_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_2_1 value = 0 }
+	set_variable = { name = wordle_cell_2_2 value = 0 }
+	set_variable = { name = wordle_cell_2_3 value = 0 }
+	set_variable = { name = wordle_cell_2_4 value = 0 }
+	set_variable = { name = wordle_cell_2_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_3_1 value = 0 }
+	set_variable = { name = wordle_cell_3_2 value = 0 }
+	set_variable = { name = wordle_cell_3_3 value = 0 }
+	set_variable = { name = wordle_cell_3_4 value = 0 }
+	set_variable = { name = wordle_cell_3_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_4_1 value = 0 }
+	set_variable = { name = wordle_cell_4_2 value = 0 }
+	set_variable = { name = wordle_cell_4_3 value = 0 }
+	set_variable = { name = wordle_cell_4_4 value = 0 }
+	set_variable = { name = wordle_cell_4_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_5_1 value = 0 }
+	set_variable = { name = wordle_cell_5_2 value = 0 }
+	set_variable = { name = wordle_cell_5_3 value = 0 }
+	set_variable = { name = wordle_cell_5_4 value = 0 }
+	set_variable = { name = wordle_cell_5_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_6_1 value = 0 }
+	set_variable = { name = wordle_cell_6_2 value = 0 }
+	set_variable = { name = wordle_cell_6_3 value = 0 }
+	set_variable = { name = wordle_cell_6_4 value = 0 }
+	set_variable = { name = wordle_cell_6_5 value = 0 }
+
+	# clear all keyboard states
+	set_variable = { name = wordle_keyboard_a value = 0 }
+	set_variable = { name = wordle_keyboard_b value = 0 }
+	set_variable = { name = wordle_keyboard_c value = 0 }
+	set_variable = { name = wordle_keyboard_d value = 0 }
+	set_variable = { name = wordle_keyboard_e value = 0 }
+	set_variable = { name = wordle_keyboard_f value = 0 }
+	set_variable = { name = wordle_keyboard_g value = 0 }
+	set_variable = { name = wordle_keyboard_h value = 0 }
+	set_variable = { name = wordle_keyboard_i value = 0 }
+	set_variable = { name = wordle_keyboard_j value = 0 }
+	set_variable = { name = wordle_keyboard_k value = 0 }
+	set_variable = { name = wordle_keyboard_l value = 0 }
+	set_variable = { name = wordle_keyboard_m value = 0 }
+	set_variable = { name = wordle_keyboard_n value = 0 }
+	set_variable = { name = wordle_keyboard_o value = 0 }
+	set_variable = { name = wordle_keyboard_p value = 0 }
+	set_variable = { name = wordle_keyboard_q value = 0 }
+	set_variable = { name = wordle_keyboard_r value = 0 }
+	set_variable = { name = wordle_keyboard_s value = 0 }
+	set_variable = { name = wordle_keyboard_t value = 0 }
+	set_variable = { name = wordle_keyboard_u value = 0 }
+	set_variable = { name = wordle_keyboard_v value = 0 }
+	set_variable = { name = wordle_keyboard_w value = 0 }
+	set_variable = { name = wordle_keyboard_x value = 0 }
+	set_variable = { name = wordle_keyboard_y value = 0 }
+	set_variable = { name = wordle_keyboard_z value = 0 }
+
+	# reset show
+	wordle_reset_show = yes
+
+	# set cursor to 1
+	set_variable = { name = wordle_row_cursor value = 1 }
+	set_variable = { name = wordle_col_cursor value = 1 }
+
+	# start a new game
+	set_variable = { name = wordle_game value = 1 }
+}
+
+# press keyboard key
+#	$key$ - key, 1-26 for letter
+#	provided by wrapper through UI
+wordle_press_key = {
+	# If col cursor is less than 6, continue, else do nothing
+	if = {
+		limit = {
+			var:wordle_col_cursor = { compare_value < 6 }
+		}
+
+		# Find the row/column pointed to by cursor, set the value there
+		
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 1 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_1 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_2 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_3 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_4 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_5 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 1 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_1 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_2 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_3 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_4 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_5 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 1 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_1 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_2 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_3 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_4 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_5 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 1 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_1 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_2 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_3 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_4 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_5 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 1 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_1 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_2 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_3 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_4 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_5 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 1 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_1 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_2 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_3 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_4 value = $key$ }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_5 value = $key$ }
+		}
+
+		# increment cursor
+		change_variable = { name = wordle_col_cursor add = 1 }
+
+		# recompute show
+		wordle_recompute_show = yes
+	}
+}
+
+# press enter
+# GIGA TODO, this needs win checking
+wordle_press_enter = {
+	# if col cursor is 6, check if the word is valid, and if it is, increment row cursor and set column cursor to 1 again
+	if = {
+		limit = {
+			var:wordle_col_cursor = { compare_value = 6 }
+		}
+		# TODO - check if word is valid!!
+
+		# increement row cursor and reset col cursor
+		change_variable = { name = wordle_row_cursor add = 1 }
+		set_variable = { name = wordle_col_cursor value = 1 }
+
+		# recompute show
+		wordle_recompute_show = yes
+	}
+}
+
+# press backspace
+wordle_press_backspace = {
+	# If col cursor is 2-6, continue, else do nothing
+	if = {
+		limit = {
+			var:wordle_col_cursor = { compare_value > 1 }
+		}
+
+		# Find the row/column pointed to by cursor, set the value there
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_1 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_2 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_3 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_4 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 1 }
+					var:wordle_col_cursor = { compare_value = 6 }
+				}
+			}
+			set_variable = { name = wordle_cell_1_5 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_1 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_2 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_3 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_4 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 2 }
+					var:wordle_col_cursor = { compare_value = 6 }
+				}
+			}
+			set_variable = { name = wordle_cell_2_5 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_1 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_2 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_3 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_4 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 3 }
+					var:wordle_col_cursor = { compare_value = 6 }
+				}
+			}
+			set_variable = { name = wordle_cell_3_5 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_1 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_2 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_3 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_4 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 4 }
+					var:wordle_col_cursor = { compare_value = 6 }
+				}
+			}
+			set_variable = { name = wordle_cell_4_5 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_1 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_2 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_3 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_4 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 5 }
+					var:wordle_col_cursor = { compare_value = 6 }
+				}
+			}
+			set_variable = { name = wordle_cell_5_5 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 2 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_1 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 3 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_2 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 4 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_3 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 5 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_4 value = 0 }
+		}
+
+		if = {
+			limit = {
+				AND = {
+					var:wordle_row_cursor = { compare_value = 6 }
+					var:wordle_col_cursor = { compare_value = 6 }
+				}
+			}
+			set_variable = { name = wordle_cell_6_5 value = 0 }
+		}
+
+		# decrement cursor
+		change_variable = { name = wordle_col_cursor subtract = 1 }
+
+		# recompute show
+		wordle_recompute_show = yes
+	}
+}
+
+# recompute show - todo ADD IN COLORS
+wordle_recompute_show = {
+	# For now, we just set every cell based on the cell value to white
+	
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_1 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r1_c1 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_2 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r1_c2 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_3 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r1_c3 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_4 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r1_c4 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_1_5 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r1_c5 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_1 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r2_c1 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_2 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r2_c2 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_3 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r2_c3 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_4 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r2_c4 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_2_5 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r2_c5 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_1 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r3_c1 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_2 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r3_c2 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_3 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r3_c3 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_4 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r3_c4 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_3_5 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r3_c5 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_1 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r4_c1 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_2 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r4_c2 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_3 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r4_c3 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_4 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r4_c4 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_4_5 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r4_c5 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_1 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r5_c1 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_2 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r5_c2 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_3 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r5_c3 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_4 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r5_c4 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_5_5 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r5_c5 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_1 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r6_c1 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_2 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r6_c2 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_3 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r6_c3 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_4 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r6_c4 value = flag:blank_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 1 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_A_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 2 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_B_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 3 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_C_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 4 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_D_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 5 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_E_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 6 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_F_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 7 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_G_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 8 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_H_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 9 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_I_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 10 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_J_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 11 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_K_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 12 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_L_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 13 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_M_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 14 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_N_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 15 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_O_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 16 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_P_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 17 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_Q_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 18 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_R_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 19 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_S_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 20 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_T_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 21 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_U_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 22 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_V_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 23 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_W_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 24 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_X_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 25 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_Y_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 26 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:letter_Z_white }
+    }
+    if = {
+        limit = { var:wordle_cell_6_5 = { compare_value = 0 } }
+        set_variable = { name = show_wordle_r6_c5 value = flag:blank_white }
+    }
+}
