@@ -1,16 +1,23 @@
-name: Daily Solution Update
+﻿name: Daily Solution Update
 
 # Pulls the day's Wordle and Connections answers into the mod, bumps the version,
 # commits to main, then hands off to the toolkit's Create Release workflow so the
 # dev Workshop item picks the update up.
 #
 # Both puzzles come from the NYT service keyed by print date, and both are
-# populated well ahead of the midnight US Eastern rollover, so the 01:05 UTC
-# schedule can ask for its own UTC date and get an answer straight away.
+# populated well ahead of the midnight US Eastern rollover, so a run can ask for
+# its own UTC date and get an answer straight away.
+#
+# The on-time daily run is fired by an external cron (cron-job.org) POSTing to
+# this workflow's dispatch endpoint, because GitHub's own scheduler queues
+# scheduled runs and was delivering them hours late. The schedule below is only
+# a backstop for days when that dispatch does not arrive.
 
 on:
   schedule:
-    - cron: "17 1 * * *"
+    # Backstop only. The on-time run arrives by workflow_dispatch from
+    # cron-job.org at 01:00 UTC; this catches the day if that never fires.
+    - cron: "5 7 * * *"
   workflow_dispatch:
     inputs:
       date:
@@ -93,7 +100,9 @@ jobs:
   trigger-release:
     name: "Trigger Create Release"
     needs: update-solutions
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.trigger-release }}
+    # Only publish when the day's content actually changed, so the backstop
+    # run (or a manual re-run) does not push a duplicate Workshop upload.
+    if: ${{ needs.update-solutions.outputs.changed == 'true' && (github.event_name != 'workflow_dispatch' || inputs.trigger-release) }}
     runs-on: ubuntu-latest
     permissions:
       actions: write
