@@ -10,7 +10,7 @@ name: Daily Solution Update
 
 on:
   schedule:
-    - cron: "5 1 * * *"
+    - cron: "17 1 * * *"
   workflow_dispatch:
     inputs:
       date:
