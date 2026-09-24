@@ -1,7 +1,7 @@
 ﻿{
 	"name": "Wordle Universalis Dev",
 	"id": "wordleuniversalis.dev",
-	"version": "26.0923",
+	"version": "26.0924",
 	"game_id": "eu5",
 	"supported_game_version": "1.1.*",
 	"short_description": "A Wordle and Connections mod for Europa Universalis V",
