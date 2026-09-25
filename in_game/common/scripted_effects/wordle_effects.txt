@@ -1,0 +1,1266 @@
+﻿#######################################
+# Wordle
+# 
+#	Variables
+#	1. board - wordle_cell_r_c => variable between 0-26, 0 is empty
+#	2. true / cached solution => 5 variables, 1-26
+#	3. keystates => 26 variables, 1-4 -- wordle_keyboard_a
+#	4. Cursor => current row of gameplay, 1-6; also column cursor, 1-5
+#	5. Show => variables for every cell and every keyboard cell to store flags for letter & color
+#	
+#	Functionality
+#	1. Reset game when opened, if one isnt in progress OR the true solution has changed from the cached one
+#	2. 
+#######################################
+
+# Set all Show to blank white
+# TODO - reset keyboard cells
+wordle_reset_show = {
+	# cell
+	set_variable = { name = show_wordle_r1_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r1_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r1_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r1_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r1_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r2_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r2_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r2_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r2_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r2_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r3_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r3_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r3_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r3_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r3_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r4_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r4_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r4_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r4_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r4_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r5_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r5_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r5_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r5_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r5_c5 value = flag:blank_white }
+	
+	set_variable = { name = show_wordle_r6_c1 value = flag:blank_white }
+	set_variable = { name = show_wordle_r6_c2 value = flag:blank_white }
+	set_variable = { name = show_wordle_r6_c3 value = flag:blank_white }
+	set_variable = { name = show_wordle_r6_c4 value = flag:blank_white }
+	set_variable = { name = show_wordle_r6_c5 value = flag:blank_white }
+
+	# keyboard
+	set_variable = { name = show_keyboard_a value = flag:letter_A_white }
+	set_variable = { name = show_keyboard_b value = flag:letter_B_white }
+	set_variable = { name = show_keyboard_c value = flag:letter_C_white }
+	set_variable = { name = show_keyboard_d value = flag:letter_D_white }
+	set_variable = { name = show_keyboard_e value = flag:letter_E_white }
+	set_variable = { name = show_keyboard_f value = flag:letter_F_white }
+	set_variable = { name = show_keyboard_g value = flag:letter_G_white }
+	set_variable = { name = show_keyboard_h value = flag:letter_H_white }
+	set_variable = { name = show_keyboard_i value = flag:letter_I_white }
+	set_variable = { name = show_keyboard_j value = flag:letter_J_white }
+	set_variable = { name = show_keyboard_k value = flag:letter_K_white }
+	set_variable = { name = show_keyboard_l value = flag:letter_L_white }
+	set_variable = { name = show_keyboard_m value = flag:letter_M_white }
+	set_variable = { name = show_keyboard_n value = flag:letter_N_white }
+	set_variable = { name = show_keyboard_o value = flag:letter_O_white }
+	set_variable = { name = show_keyboard_p value = flag:letter_P_white }
+	set_variable = { name = show_keyboard_q value = flag:letter_Q_white }
+	set_variable = { name = show_keyboard_r value = flag:letter_R_white }
+	set_variable = { name = show_keyboard_s value = flag:letter_S_white }
+	set_variable = { name = show_keyboard_t value = flag:letter_T_white }
+	set_variable = { name = show_keyboard_u value = flag:letter_U_white }
+	set_variable = { name = show_keyboard_v value = flag:letter_V_white }
+	set_variable = { name = show_keyboard_w value = flag:letter_W_white }
+	set_variable = { name = show_keyboard_x value = flag:letter_X_white }
+	set_variable = { name = show_keyboard_y value = flag:letter_Y_white }
+	set_variable = { name = show_keyboard_z value = flag:letter_Z_white }
+}
+
+# Effect called upon opening window
+wordle_open_window = {
+	# Refresh the true solution
+	wordle_fetch_solution = yes
+	# if cache isnt set, reset the game
+	if = {
+		limit = {
+			has_variable = wordle_cached_id
+		}
+		# if game is not in progress, OR cached id differs from true id, reset the game
+		# else do nothing
+		if = {
+			limit = {
+				OR = {
+					NOT = { var:wordle_true_id = root.var:wordle_cached_id }
+					NOT = { var:wordle_game > 0 }
+				}
+			}
+
+			wordle_reset_game = yes
+		}
+	} else = {
+		wordle_reset_game = yes
+	}
+	
+}
+
+# Reset the game to its basic state
+wordle_reset_game = {
+	# set cached solution to true solution
+	set_variable = { name = wordle_cached_id value = var:wordle_true_id }
+	set_variable = { name = wordle_cached_1 value = var:wordle_true_1 }
+	set_variable = { name = wordle_cached_2 value = var:wordle_true_2 }
+	set_variable = { name = wordle_cached_3 value = var:wordle_true_3 }
+	set_variable = { name = wordle_cached_4 value = var:wordle_true_4 }
+	set_variable = { name = wordle_cached_5 value = var:wordle_true_5 }
+
+	# clear all 26 cells
+	set_variable = { name = wordle_cell_1_1 value = 0 }
+	set_variable = { name = wordle_cell_1_2 value = 0 }
+	set_variable = { name = wordle_cell_1_3 value = 0 }
+	set_variable = { name = wordle_cell_1_4 value = 0 }
+	set_variable = { name = wordle_cell_1_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_2_1 value = 0 }
+	set_variable = { name = wordle_cell_2_2 value = 0 }
+	set_variable = { name = wordle_cell_2_3 value = 0 }
+	set_variable = { name = wordle_cell_2_4 value = 0 }
+	set_variable = { name = wordle_cell_2_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_3_1 value = 0 }
+	set_variable = { name = wordle_cell_3_2 value = 0 }
+	set_variable = { name = wordle_cell_3_3 value = 0 }
+	set_variable = { name = wordle_cell_3_4 value = 0 }
+	set_variable = { name = wordle_cell_3_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_4_1 value = 0 }
+	set_variable = { name = wordle_cell_4_2 value = 0 }
+	set_variable = { name = wordle_cell_4_3 value = 0 }
+	set_variable = { name = wordle_cell_4_4 value = 0 }
+	set_variable = { name = wordle_cell_4_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_5_1 value = 0 }
+	set_variable = { name = wordle_cell_5_2 value = 0 }
+	set_variable = { name = wordle_cell_5_3 value = 0 }
+	set_variable = { name = wordle_cell_5_4 value = 0 }
+	set_variable = { name = wordle_cell_5_5 value = 0 }
+	
+	set_variable = { name = wordle_cell_6_1 value = 0 }
+	set_variable = { name = wordle_cell_6_2 value = 0 }
+	set_variable = { name = wordle_cell_6_3 value = 0 }
+	set_variable = { name = wordle_cell_6_4 value = 0 }
+	set_variable = { name = wordle_cell_6_5 value = 0 }
+
+	# clear all keyboard states
+	set_variable = { name = wordle_keyboard_a value = 1 }
+	set_variable = { name = wordle_keyboard_b value = 1 }
+	set_variable = { name = wordle_keyboard_c value = 1 }
+	set_variable = { name = wordle_keyboard_d value = 1 }
+	set_variable = { name = wordle_keyboard_e value = 1 }
+	set_variable = { name = wordle_keyboard_f value = 1 }
+	set_variable = { name = wordle_keyboard_g value = 1 }
+	set_variable = { name = wordle_keyboard_h value = 1 }
+	set_variable = { name = wordle_keyboard_i value = 1 }
+	set_variable = { name = wordle_keyboard_j value = 1 }
+	set_variable = { name = wordle_keyboard_k value = 1 }
+	set_variable = { name = wordle_keyboard_l value = 1 }
+	set_variable = { name = wordle_keyboard_m value = 1 }
+	set_variable = { name = wordle_keyboard_n value = 1 }
+	set_variable = { name = wordle_keyboard_o value = 1 }
+	set_variable = { name = wordle_keyboard_p value = 1 }
+	set_variable = { name = wordle_keyboard_q value = 1 }
+	set_variable = { name = wordle_keyboard_r value = 1 }
+	set_variable = { name = wordle_keyboard_s value = 1 }
+	set_variable = { name = wordle_keyboard_t value = 1 }
+	set_variable = { name = wordle_keyboard_u value = 1 }
+	set_variable = { name = wordle_keyboard_v value = 1 }
+	set_variable = { name = wordle_keyboard_w value = 1 }
+	set_variable = { name = wordle_keyboard_x value = 1 }
+	set_variable = { name = wordle_keyboard_y value = 1 }
+	set_variable = { name = wordle_keyboard_z value = 1 }
+
+	# reset show
+	wordle_reset_show = yes
+
+	# set cursor to 1
+	set_variable = { name = wordle_row_cursor value = 1 }
+	set_variable = { name = wordle_col_cursor value = 1 }
+
+	# start a new game
+	set_variable = { name = wordle_game value = 1 }
+}
+
+# press keyboard key
+#	$key$ - key, 1-26 for letter
+#	provided by wrapper through UI
+wordle_press_key = {
+    # only do something if game is in progress
+    if = {
+        limit = {
+            var:wordle_game = 1
+        }
+        # If col cursor is less than 6, continue, else do nothing
+        if = {
+            limit = {
+                var:wordle_col_cursor < 6
+            }
+
+            # Find the row/column pointed to by cursor, set the value there
+            
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 1
+                    }
+                }
+                set_variable = { name = wordle_cell_1_1 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_1_2 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_1_3 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_1_4 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_1_5 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 1
+                    }
+                }
+                set_variable = { name = wordle_cell_2_1 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_2_2 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_2_3 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_2_4 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_2_5 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 1
+                    }
+                }
+                set_variable = { name = wordle_cell_3_1 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_3_2 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_3_3 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_3_4 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_3_5 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 1
+                    }
+                }
+                set_variable = { name = wordle_cell_4_1 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_4_2 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_4_3 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_4_4 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_4_5 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 1
+                    }
+                }
+                set_variable = { name = wordle_cell_5_1 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_5_2 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_5_3 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_5_4 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_5_5 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 1
+                    }
+                }
+                set_variable = { name = wordle_cell_6_1 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_6_2 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_6_3 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_6_4 value = $key$ }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_6_5 value = $key$ }
+            }
+
+            # increment cursor
+            change_variable = { name = wordle_col_cursor add = 1 }
+
+            # recompute show
+            wordle_recompute_show = yes
+        }
+    }
+}
+
+# press enter
+# GIGA TODO, this needs win checking
+wordle_press_enter = {
+    # only do something if game is in progress
+    if = {
+        limit = {
+            var:wordle_game = 1
+        }
+        # if col cursor is 6, check if the word is valid, and if it is, increment row cursor and set column cursor to 1 again
+        if = {
+            limit = {
+                var:wordle_col_cursor = 6
+            }
+            # Check if game is won
+            if = {
+                limit = {
+                    wordle_win = yes
+                }
+                # increement row cursor and reset col cursor (for the show functionality)
+                change_variable = { name = wordle_row_cursor add = 1 }
+                set_variable = { name = wordle_col_cursor value = 1 }
+
+                # recompute show
+                wordle_recompute_show = yes
+
+                # set game to win
+                set_variable = { name = wordle_game value = 2 }
+            }
+            # Check if word is valid
+            else_if = {
+                limit = {
+                    OR = {
+                        AND = {
+                            var:wordle_row_cursor = 1
+                            wordle_valid_guess = { r = 1 }
+                        }
+                        AND = {
+                            var:wordle_row_cursor = 2
+                            wordle_valid_guess = { r = 2 }
+                        }
+                        AND = {
+                            var:wordle_row_cursor = 3
+                            wordle_valid_guess = { r = 3 }
+                        }
+                        AND = {
+                            var:wordle_row_cursor = 4
+                            wordle_valid_guess = { r = 4 }
+                        }
+                        AND = {
+                            var:wordle_row_cursor = 5
+                            wordle_valid_guess = { r = 5 }
+                        }
+                        AND = {
+                            var:wordle_row_cursor = 6
+                            wordle_valid_guess = { r = 6 }
+                        }
+                    }
+                }
+                # increement row cursor and reset col cursor
+                change_variable = { name = wordle_row_cursor add = 1 }
+                set_variable = { name = wordle_col_cursor value = 1 }
+
+                # recompute show
+                wordle_recompute_show = yes
+            }
+        }
+    }
+	
+}
+
+# press backspace
+wordle_press_backspace = {
+    # only do something if game is in progress
+    if = {
+        limit = {
+            var:wordle_game = 1
+        }
+        # If col cursor is 2-6, continue, else do nothing
+        if = {
+            limit = {
+                var:wordle_col_cursor > 1
+            }
+
+            # Find the row/column pointed to by cursor, set the value there
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_1_1 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_1_2 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_1_3 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_1_4 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 1
+                        var:wordle_col_cursor = 6
+                    }
+                }
+                set_variable = { name = wordle_cell_1_5 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_2_1 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_2_2 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_2_3 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_2_4 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 2
+                        var:wordle_col_cursor = 6
+                    }
+                }
+                set_variable = { name = wordle_cell_2_5 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_3_1 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_3_2 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_3_3 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_3_4 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 3
+                        var:wordle_col_cursor = 6
+                    }
+                }
+                set_variable = { name = wordle_cell_3_5 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_4_1 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_4_2 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_4_3 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_4_4 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 4
+                        var:wordle_col_cursor = 6
+                    }
+                }
+                set_variable = { name = wordle_cell_4_5 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_5_1 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_5_2 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_5_3 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_5_4 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 5
+                        var:wordle_col_cursor = 6
+                    }
+                }
+                set_variable = { name = wordle_cell_5_5 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 2
+                    }
+                }
+                set_variable = { name = wordle_cell_6_1 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 3
+                    }
+                }
+                set_variable = { name = wordle_cell_6_2 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 4
+                    }
+                }
+                set_variable = { name = wordle_cell_6_3 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 5
+                    }
+                }
+                set_variable = { name = wordle_cell_6_4 value = 0 }
+            }
+
+            if = {
+                limit = {
+                    AND = {
+                        var:wordle_row_cursor = 6
+                        var:wordle_col_cursor = 6
+                    }
+                }
+                set_variable = { name = wordle_cell_6_5 value = 0 }
+            }
+
+            # decrement cursor
+            change_variable = { name = wordle_col_cursor subtract = 1 }
+
+            # recompute show
+            wordle_recompute_show = yes
+        }
+    }
+}
+
+# reset all letter counters to 0
+wordle_reset_letter_counters = {
+    set_variable = { name = wordle_counter_A value = 0 }
+    set_variable = { name = wordle_counter_B value = 0 }
+    set_variable = { name = wordle_counter_C value = 0 }
+    set_variable = { name = wordle_counter_D value = 0 }
+    set_variable = { name = wordle_counter_E value = 0 }
+    set_variable = { name = wordle_counter_F value = 0 }
+    set_variable = { name = wordle_counter_G value = 0 }
+    set_variable = { name = wordle_counter_H value = 0 }
+    set_variable = { name = wordle_counter_I value = 0 }
+    set_variable = { name = wordle_counter_J value = 0 }
+    set_variable = { name = wordle_counter_K value = 0 }
+    set_variable = { name = wordle_counter_L value = 0 }
+    set_variable = { name = wordle_counter_M value = 0 }
+    set_variable = { name = wordle_counter_N value = 0 }
+    set_variable = { name = wordle_counter_O value = 0 }
+    set_variable = { name = wordle_counter_P value = 0 }
+    set_variable = { name = wordle_counter_Q value = 0 }
+    set_variable = { name = wordle_counter_R value = 0 }
+    set_variable = { name = wordle_counter_S value = 0 }
+    set_variable = { name = wordle_counter_T value = 0 }
+    set_variable = { name = wordle_counter_U value = 0 }
+    set_variable = { name = wordle_counter_V value = 0 }
+    set_variable = { name = wordle_counter_W value = 0 }
+    set_variable = { name = wordle_counter_X value = 0 }
+    set_variable = { name = wordle_counter_Y value = 0 }
+    set_variable = { name = wordle_counter_Z value = 0 }
+}
+
+# increment letter counter based on $var$ value 1-26
+wordle_inc_letter_counter = {
+    if = { limit = { var:$var$ = 1 } change_variable = { name = wordle_counter_A add = 1 } }
+    if = { limit = { var:$var$ = 2 } change_variable = { name = wordle_counter_B add = 1 } }
+    if = { limit = { var:$var$ = 3 } change_variable = { name = wordle_counter_C add = 1 } }
+    if = { limit = { var:$var$ = 4 } change_variable = { name = wordle_counter_D add = 1 } }
+    if = { limit = { var:$var$ = 5 } change_variable = { name = wordle_counter_E add = 1 } }
+    if = { limit = { var:$var$ = 6 } change_variable = { name = wordle_counter_F add = 1 } }
+    if = { limit = { var:$var$ = 7 } change_variable = { name = wordle_counter_G add = 1 } }
+    if = { limit = { var:$var$ = 8 } change_variable = { name = wordle_counter_H add = 1 } }
+    if = { limit = { var:$var$ = 9 } change_variable = { name = wordle_counter_I add = 1 } }
+    if = { limit = { var:$var$ = 10 } change_variable = { name = wordle_counter_J add = 1 } }
+    if = { limit = { var:$var$ = 11 } change_variable = { name = wordle_counter_K add = 1 } }
+    if = { limit = { var:$var$ = 12 } change_variable = { name = wordle_counter_L add = 1 } }
+    if = { limit = { var:$var$ = 13 } change_variable = { name = wordle_counter_M add = 1 } }
+    if = { limit = { var:$var$ = 14 } change_variable = { name = wordle_counter_N add = 1 } }
+    if = { limit = { var:$var$ = 15 } change_variable = { name = wordle_counter_O add = 1 } }
+    if = { limit = { var:$var$ = 16 } change_variable = { name = wordle_counter_P add = 1 } }
+    if = { limit = { var:$var$ = 17 } change_variable = { name = wordle_counter_Q add = 1 } }
+    if = { limit = { var:$var$ = 18 } change_variable = { name = wordle_counter_R add = 1 } }
+    if = { limit = { var:$var$ = 19 } change_variable = { name = wordle_counter_S add = 1 } }
+    if = { limit = { var:$var$ = 20 } change_variable = { name = wordle_counter_T add = 1 } }
+    if = { limit = { var:$var$ = 21 } change_variable = { name = wordle_counter_U add = 1 } }
+    if = { limit = { var:$var$ = 22 } change_variable = { name = wordle_counter_V add = 1 } }
+    if = { limit = { var:$var$ = 23 } change_variable = { name = wordle_counter_W add = 1 } }
+    if = { limit = { var:$var$ = 24 } change_variable = { name = wordle_counter_X add = 1 } }
+    if = { limit = { var:$var$ = 25 } change_variable = { name = wordle_counter_Y add = 1 } }
+    if = { limit = { var:$var$ = 26 } change_variable = { name = wordle_counter_Z add = 1 } }
+}
+
+wordle_build_letter_counters = {
+    wordle_inc_letter_counter = { var = wordle_cached_1 }
+    wordle_inc_letter_counter = { var = wordle_cached_2 }
+    wordle_inc_letter_counter = { var = wordle_cached_3 }
+    wordle_inc_letter_counter = { var = wordle_cached_4 }
+    wordle_inc_letter_counter = { var = wordle_cached_5 }
+}
+
+# increment letter counter based on $var$ value 1-26
+wordle_dec_letter_counter = {
+    if = { limit = { var:$var$ = 1 } change_variable = { name = wordle_counter_A subtract = 1 } }
+    if = { limit = { var:$var$ = 2 } change_variable = { name = wordle_counter_B subtract = 1 } }
+    if = { limit = { var:$var$ = 3 } change_variable = { name = wordle_counter_C subtract = 1 } }
+    if = { limit = { var:$var$ = 4 } change_variable = { name = wordle_counter_D subtract = 1 } }
+    if = { limit = { var:$var$ = 5 } change_variable = { name = wordle_counter_E subtract = 1 } }
+    if = { limit = { var:$var$ = 6 } change_variable = { name = wordle_counter_F subtract = 1 } }
+    if = { limit = { var:$var$ = 7 } change_variable = { name = wordle_counter_G subtract = 1 } }
+    if = { limit = { var:$var$ = 8 } change_variable = { name = wordle_counter_H subtract = 1 } }
+    if = { limit = { var:$var$ = 9 } change_variable = { name = wordle_counter_I subtract = 1 } }
+    if = { limit = { var:$var$ = 10 } change_variable = { name = wordle_counter_J subtract = 1 } }
+    if = { limit = { var:$var$ = 11 } change_variable = { name = wordle_counter_K subtract = 1 } }
+    if = { limit = { var:$var$ = 12 } change_variable = { name = wordle_counter_L subtract = 1 } }
+    if = { limit = { var:$var$ = 13 } change_variable = { name = wordle_counter_M subtract = 1 } }
+    if = { limit = { var:$var$ = 14 } change_variable = { name = wordle_counter_N subtract = 1 } }
+    if = { limit = { var:$var$ = 15 } change_variable = { name = wordle_counter_O subtract = 1 } }
+    if = { limit = { var:$var$ = 16 } change_variable = { name = wordle_counter_P subtract = 1 } }
+    if = { limit = { var:$var$ = 17 } change_variable = { name = wordle_counter_Q subtract = 1 } }
+    if = { limit = { var:$var$ = 18 } change_variable = { name = wordle_counter_R subtract = 1 } }
+    if = { limit = { var:$var$ = 19 } change_variable = { name = wordle_counter_S subtract = 1 } }
+    if = { limit = { var:$var$ = 20 } change_variable = { name = wordle_counter_T subtract = 1 } }
+    if = { limit = { var:$var$ = 21 } change_variable = { name = wordle_counter_U subtract = 1 } }
+    if = { limit = { var:$var$ = 22 } change_variable = { name = wordle_counter_V subtract = 1 } }
+    if = { limit = { var:$var$ = 23 } change_variable = { name = wordle_counter_W subtract = 1 } }
+    if = { limit = { var:$var$ = 24 } change_variable = { name = wordle_counter_X subtract = 1 } }
+    if = { limit = { var:$var$ = 25 } change_variable = { name = wordle_counter_Y subtract = 1 } }
+    if = { limit = { var:$var$ = 26 } change_variable = { name = wordle_counter_Z subtract = 1 } }
+}
+
+# show a cell
+#   $var$ - holds value corresponding to letter
+#   $r$ and $c$ - row and cell of letter
+#   $color$ - green, yellow, or gray
+wordle_show_cell = {
+    if = { limit = { var:$var$ = 0 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:blank_white } }
+    if = { limit = { var:$var$ = 1 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_A_$color$ } }
+    if = { limit = { var:$var$ = 2 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_B_$color$ } }
+    if = { limit = { var:$var$ = 3 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_C_$color$ } }
+    if = { limit = { var:$var$ = 4 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_D_$color$ } }
+    if = { limit = { var:$var$ = 5 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_E_$color$ } }
+    if = { limit = { var:$var$ = 6 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_F_$color$ } }
+    if = { limit = { var:$var$ = 7 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_G_$color$ } }
+    if = { limit = { var:$var$ = 8 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_H_$color$ } }
+    if = { limit = { var:$var$ = 9 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_I_$color$ } }
+    if = { limit = { var:$var$ = 10 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_J_$color$ } }
+    if = { limit = { var:$var$ = 11 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_K_$color$ } }
+    if = { limit = { var:$var$ = 12 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_L_$color$ } }
+    if = { limit = { var:$var$ = 13 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_M_$color$ } }
+    if = { limit = { var:$var$ = 14 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_N_$color$ } }
+    if = { limit = { var:$var$ = 15 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_O_$color$ } }
+    if = { limit = { var:$var$ = 16 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_P_$color$ } }
+    if = { limit = { var:$var$ = 17 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_Q_$color$ } }
+    if = { limit = { var:$var$ = 18 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_R_$color$ } }
+    if = { limit = { var:$var$ = 19 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_S_$color$ } }
+    if = { limit = { var:$var$ = 20 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_T_$color$ } }
+    if = { limit = { var:$var$ = 21 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_U_$color$ } }
+    if = { limit = { var:$var$ = 22 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_V_$color$ } }
+    if = { limit = { var:$var$ = 23 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_W_$color$ } }
+    if = { limit = { var:$var$ = 24 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_X_$color$ } }
+    if = { limit = { var:$var$ = 25 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_Y_$color$ } }
+    if = { limit = { var:$var$ = 26 } set_variable = { name = show_wordle_r$r$_c$c$ value = flag:letter_Z_$color$ } }
+}
+
+# r, c
+wordle_green_pass = {
+    if = {
+        limit = {
+            AND = {
+                wordle_letter_counter_positive = { var = wordle_cell_$r$_$c$ }
+                var:wordle_cell_$r$_$c$ = var:wordle_cached_$c$
+            }
+        }
+        wordle_show_cell = { var = wordle_cell_$r$_$c$ r = $r$ c = $c$ color = green }
+        wordle_dec_letter_counter = { var = wordle_cell_$r$_$c$ }
+        wordle_keyboard_update_wrapper = { var = wordle_cell_$r$_$c$ val = 4 }
+    }
+}
+
+# r, c
+wordle_yellow_pass = {
+    if = {
+        limit = {
+            NOT = { var:wordle_cell_$r$_$c$ = var:wordle_cached_$c$ }
+        }
+        if = {
+            limit = {
+                wordle_letter_counter_positive = { var = wordle_cell_$r$_$c$ }
+            }
+            wordle_show_cell = { var = wordle_cell_$r$_$c$ r = $r$ c = $c$ color = yellow }
+            wordle_dec_letter_counter = { var = wordle_cell_$r$_$c$ }
+            wordle_keyboard_update_wrapper = { var = wordle_cell_$r$_$c$ val = 3 }
+        } else = {
+            wordle_show_cell = { var = wordle_cell_$r$_$c$ r = $r$ c = $c$ color = gray }
+            wordle_keyboard_update_wrapper = { var = wordle_cell_$r$_$c$ val = 2 }
+        }
+    }
+}
+
+# show an entire row [& perform appropriate keyboard operations]
+#   $r$ - row
+wordle_show_row = {
+    # $r$
+
+    # compute the counts
+    wordle_reset_letter_counters = yes
+    wordle_build_letter_counters = yes
+
+    # green pass - if letter counter is positive and letters match
+    wordle_green_pass = { r = $r$ c = 1 }
+    wordle_green_pass = { r = $r$ c = 2 }
+    wordle_green_pass = { r = $r$ c = 3 }
+    wordle_green_pass = { r = $r$ c = 4 }
+    wordle_green_pass = { r = $r$ c = 5 }
+
+    # yellow pass - sets to either yellow or gray depending on counter
+    wordle_yellow_pass = { r = $r$ c = 1 }
+    wordle_yellow_pass = { r = $r$ c = 2 }
+    wordle_yellow_pass = { r = $r$ c = 3 }
+    wordle_yellow_pass = { r = $r$ c = 4 }
+    wordle_yellow_pass = { r = $r$ c = 5 }
+}
+
+# r - row to display
+wordle_show_unfinished_row = {
+    wordle_show_cell = { var = wordle_cell_$r$_1 r = $r$ c = 1 color = white }
+    wordle_show_cell = { var = wordle_cell_$r$_2 r = $r$ c = 2 color = white }
+    wordle_show_cell = { var = wordle_cell_$r$_3 r = $r$ c = 3 color = white }
+    wordle_show_cell = { var = wordle_cell_$r$_4 r = $r$ c = 4 color = white }
+    wordle_show_cell = { var = wordle_cell_$r$_5 r = $r$ c = 5 color = white }
+}
+
+# recompute show
+wordle_recompute_show = {
+    if = {
+        limit = { var:wordle_row_cursor > 1 }
+        wordle_show_row = { r = 1 }
+    } else = {
+        wordle_show_unfinished_row = { r = 1 }
+    }
+    if = {
+        limit = { var:wordle_row_cursor > 2 }
+        wordle_show_row = { r = 2 }
+    } else = {
+        wordle_show_unfinished_row = { r = 2 }
+    }
+    if = {
+        limit = { var:wordle_row_cursor > 3 }
+        wordle_show_row = { r = 3 }
+    } else = {
+        wordle_show_unfinished_row = { r = 3 }
+    }
+    if = {
+        limit = { var:wordle_row_cursor > 4 }
+        wordle_show_row = { r = 4 }
+    } else = {
+        wordle_show_unfinished_row = { r = 4 }
+    }
+    if = {
+        limit = { var:wordle_row_cursor > 5 }
+        wordle_show_row = { r = 5 }
+    } else = {
+        wordle_show_unfinished_row = { r = 5 }
+    }
+    if = {
+        limit = { var:wordle_row_cursor > 6 }
+        wordle_show_row = { r = 6 }
+    } else = {
+        wordle_show_unfinished_row = { r = 6 }
+    }
+
+    wordle_keyboard_show = yes
+}
+
+# 1 - white, 2 - gray, 3 - yellow, 4 - green
+# gray and green cannot be changed but yellow can promote to green
+# use variable value in $var$ to identify the key [wordle_keyboard_<letter>]
+# use the current value in the key to promote/demote
+# $var$ $val$
+wordle_keyboard_update_wrapper = {
+    # get comparable value
+    set_variable = { name = temp value = $val$ }
+
+    # update the key
+    if = { limit = { var:$var$ = 1 } wordle_keyboard_update = { key = wordle_keyboard_a } }
+    if = { limit = { var:$var$ = 2 } wordle_keyboard_update = { key = wordle_keyboard_b } }
+    if = { limit = { var:$var$ = 3 } wordle_keyboard_update = { key = wordle_keyboard_c } }
+    if = { limit = { var:$var$ = 4 } wordle_keyboard_update = { key = wordle_keyboard_d } }
+    if = { limit = { var:$var$ = 5 } wordle_keyboard_update = { key = wordle_keyboard_e } }
+    if = { limit = { var:$var$ = 6 } wordle_keyboard_update = { key = wordle_keyboard_f } }
+    if = { limit = { var:$var$ = 7 } wordle_keyboard_update = { key = wordle_keyboard_g } }
+    if = { limit = { var:$var$ = 8 } wordle_keyboard_update = { key = wordle_keyboard_h } }
+    if = { limit = { var:$var$ = 9 } wordle_keyboard_update = { key = wordle_keyboard_i } }
+    if = { limit = { var:$var$ = 10 } wordle_keyboard_update = { key = wordle_keyboard_j } }
+    if = { limit = { var:$var$ = 11 } wordle_keyboard_update = { key = wordle_keyboard_k } }
+    if = { limit = { var:$var$ = 12 } wordle_keyboard_update = { key = wordle_keyboard_l } }
+    if = { limit = { var:$var$ = 13 } wordle_keyboard_update = { key = wordle_keyboard_m } }
+    if = { limit = { var:$var$ = 14 } wordle_keyboard_update = { key = wordle_keyboard_n } }
+    if = { limit = { var:$var$ = 15 } wordle_keyboard_update = { key = wordle_keyboard_o } }
+    if = { limit = { var:$var$ = 16 } wordle_keyboard_update = { key = wordle_keyboard_p } }
+    if = { limit = { var:$var$ = 17 } wordle_keyboard_update = { key = wordle_keyboard_q } }
+    if = { limit = { var:$var$ = 18 } wordle_keyboard_update = { key = wordle_keyboard_r } }
+    if = { limit = { var:$var$ = 19 } wordle_keyboard_update = { key = wordle_keyboard_s } }
+    if = { limit = { var:$var$ = 20 } wordle_keyboard_update = { key = wordle_keyboard_t } }
+    if = { limit = { var:$var$ = 21 } wordle_keyboard_update = { key = wordle_keyboard_u } }
+    if = { limit = { var:$var$ = 22 } wordle_keyboard_update = { key = wordle_keyboard_v } }
+    if = { limit = { var:$var$ = 23 } wordle_keyboard_update = { key = wordle_keyboard_w } }
+    if = { limit = { var:$var$ = 24 } wordle_keyboard_update = { key = wordle_keyboard_x } }
+    if = { limit = { var:$var$ = 25 } wordle_keyboard_update = { key = wordle_keyboard_y } }
+    if = { limit = { var:$var$ = 26 } wordle_keyboard_update = { key = wordle_keyboard_z } }
+}
+
+# $key$ (this is a child of the above effect)
+wordle_keyboard_update = {
+    # if white, set to temp
+    # if yellow and temp is 4, set to temp
+    if = {
+        limit = {
+            OR = {
+                var:$key$ = 1
+                AND = {
+                    var:$key$ = 3
+                    temp = 4
+                }
+            }
+        }
+        set_variable = { name = $key$ value = var:temp }
+    }
+}
+
+wordle_keyboard_show = {
+    wordle_key_show = { ll = a lu = A }
+    wordle_key_show = { ll = b lu = B }
+    wordle_key_show = { ll = c lu = C }
+    wordle_key_show = { ll = d lu = D }
+    wordle_key_show = { ll = e lu = E }
+    wordle_key_show = { ll = f lu = F }
+    wordle_key_show = { ll = g lu = G }
+    wordle_key_show = { ll = h lu = H }
+    wordle_key_show = { ll = i lu = I }
+    wordle_key_show = { ll = j lu = J }
+    wordle_key_show = { ll = k lu = K }
+    wordle_key_show = { ll = l lu = L }
+    wordle_key_show = { ll = m lu = M }
+    wordle_key_show = { ll = n lu = N }
+    wordle_key_show = { ll = o lu = O }
+    wordle_key_show = { ll = p lu = P }
+    wordle_key_show = { ll = q lu = Q }
+    wordle_key_show = { ll = r lu = R }
+    wordle_key_show = { ll = s lu = S }
+    wordle_key_show = { ll = t lu = T }
+    wordle_key_show = { ll = u lu = U }
+    wordle_key_show = { ll = v lu = V }
+    wordle_key_show = { ll = w lu = W }
+    wordle_key_show = { ll = x lu = X }
+    wordle_key_show = { ll = y lu = Y }
+    wordle_key_show = { ll = z lu = Z }
+}
+
+wordle_key_show = {
+    if = {
+        limit = {
+            var:wordle_keyboard_$ll$ = 1
+        }
+        set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_white }
+    } else_if = {
+        limit = {
+            var:wordle_keyboard_$ll$ = 2
+        }
+        set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_gray }
+    } else_if = {
+        limit = {
+            var:wordle_keyboard_$ll$ = 3
+        }
+        set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_yellow }
+    } else_if = {
+        limit = {
+            var:wordle_keyboard_$ll$ = 4
+        }
+        set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_green }
+    }
+}

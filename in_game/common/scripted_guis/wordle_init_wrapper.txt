@@ -1,0 +1,1 @@
+wordle_init_wrapper = { effect = { wordle_open_window = yes } }
