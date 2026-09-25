@@ -1,0 +1,156 @@
+﻿wordle_win = {
+	OR = {
+		AND = {
+			var:wordle_cached_1 = var:wordle_cell_1_1
+			var:wordle_cached_2 = var:wordle_cell_1_2
+			var:wordle_cached_3 = var:wordle_cell_1_3
+			var:wordle_cached_4 = var:wordle_cell_1_4
+			var:wordle_cached_5 = var:wordle_cell_1_5
+		}
+		AND = {
+			var:wordle_cached_1 = var:wordle_cell_2_1
+			var:wordle_cached_2 = var:wordle_cell_2_2
+			var:wordle_cached_3 = var:wordle_cell_2_3
+			var:wordle_cached_4 = var:wordle_cell_2_4
+			var:wordle_cached_5 = var:wordle_cell_2_5
+		}
+		AND = {
+			var:wordle_cached_1 = var:wordle_cell_3_1
+			var:wordle_cached_2 = var:wordle_cell_3_2
+			var:wordle_cached_3 = var:wordle_cell_3_3
+			var:wordle_cached_4 = var:wordle_cell_3_4
+			var:wordle_cached_5 = var:wordle_cell_3_5
+		}
+		AND = {
+			var:wordle_cached_1 = var:wordle_cell_4_1
+			var:wordle_cached_2 = var:wordle_cell_4_2
+			var:wordle_cached_3 = var:wordle_cell_4_3
+			var:wordle_cached_4 = var:wordle_cell_4_4
+			var:wordle_cached_5 = var:wordle_cell_4_5
+		}
+		AND = {
+			var:wordle_cached_1 = var:wordle_cell_5_1
+			var:wordle_cached_2 = var:wordle_cell_5_2
+			var:wordle_cached_3 = var:wordle_cell_5_3
+			var:wordle_cached_4 = var:wordle_cell_5_4
+			var:wordle_cached_5 = var:wordle_cell_5_5
+		}
+		AND = {
+			var:wordle_cached_1 = var:wordle_cell_6_1
+			var:wordle_cached_2 = var:wordle_cell_6_2
+			var:wordle_cached_3 = var:wordle_cell_6_3
+			var:wordle_cached_4 = var:wordle_cell_6_4
+			var:wordle_cached_5 = var:wordle_cell_6_5
+		}
+	}
+}
+
+# finds if the letter held by $var$ has a positive counter
+wordle_letter_counter_positive = {
+	OR = {
+        AND = {
+			var:$var$ = 1
+			var:wordle_counter_A > 0
+		}
+        AND = {
+			var:$var$ = 2
+			var:wordle_counter_B > 0
+		}
+        AND = {
+			var:$var$ = 3
+			var:wordle_counter_C > 0
+		}
+        AND = {
+			var:$var$ = 4
+			var:wordle_counter_D > 0
+		}
+        AND = {
+			var:$var$ = 5
+			var:wordle_counter_E > 0
+		}
+        AND = {
+			var:$var$ = 6
+			var:wordle_counter_F > 0
+		}
+        AND = {
+			var:$var$ = 7
+			var:wordle_counter_G > 0
+		}
+        AND = {
+			var:$var$ = 8
+			var:wordle_counter_H > 0
+		}
+        AND = {
+			var:$var$ = 9
+			var:wordle_counter_I > 0
+		}
+        AND = {
+			var:$var$ = 10
+			var:wordle_counter_J > 0
+		}
+        AND = {
+			var:$var$ = 11
+			var:wordle_counter_K > 0
+		}
+        AND = {
+			var:$var$ = 12
+			var:wordle_counter_L > 0
+		}
+        AND = {
+			var:$var$ = 13
+			var:wordle_counter_M > 0
+		}
+        AND = {
+			var:$var$ = 14
+			var:wordle_counter_N > 0
+		}
+        AND = {
+			var:$var$ = 15
+			var:wordle_counter_O > 0
+		}
+        AND = {
+			var:$var$ = 16
+			var:wordle_counter_P > 0
+		}
+        AND = {
+			var:$var$ = 17
+			var:wordle_counter_Q > 0
+		}
+        AND = {
+			var:$var$ = 18
+			var:wordle_counter_R > 0
+		}
+        AND = {
+			var:$var$ = 19
+			var:wordle_counter_S > 0
+		}
+        AND = {
+			var:$var$ = 20
+			var:wordle_counter_T > 0
+		}
+        AND = {
+			var:$var$ = 21
+			var:wordle_counter_U > 0
+		}
+        AND = {
+			var:$var$ = 22
+			var:wordle_counter_V > 0
+		}
+        AND = {
+			var:$var$ = 23
+			var:wordle_counter_W > 0
+		}
+        AND = {
+			var:$var$ = 24
+			var:wordle_counter_X > 0
+		}
+        AND = {
+			var:$var$ = 25
+			var:wordle_counter_Y > 0
+		}
+        AND = {
+			var:$var$ = 26
+			var:wordle_counter_Z > 0
+		}
+	}
+}

@@ -4,8 +4,7 @@ window = {
 	name = "wordle_window"
 	parentanchor = center
 	size = { 500 800 }
-	using = bg_age_event_inner
-	using = bg_age_event_frame
+	background = { texture = "gfx/interface/icons/wordle/blank-white.dds" }
 
 	widget = {
 		size = { 100% 100% }
@@ -266,8 +265,8 @@ window = {
 
 			hbox = {
 				button = {
-					size = { 32 32 }
-					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_enter').GetFlagName)]"
+					size = { 48 32 }
+					texture = "gfx/interface/icons/wordle/enter-white.dds"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_enter').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 				}
 				button = {
@@ -306,8 +305,8 @@ window = {
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_m').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 				}
 				button = {
-					size = { 32 32 }
-					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_backspace').GetFlagName)]"
+					size = { 48 32 }
+					texture = "gfx/interface/icons/wordle/backspace-white.dds"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_backspace').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 				}
 			}
