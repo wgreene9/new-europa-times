@@ -215,7 +215,7 @@ window = {
 			}
 
 			hbox = {
-				margin_left = 11
+				margin_left = 6
 				button = {
 					size = { 32 32 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_a').GetFlagName)]"

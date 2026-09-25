@@ -4,7 +4,7 @@
 #	Variables
 #	1. board - wordle_cell_r_c => variable between 0-26, 0 is empty
 #	2. true / cached solution => 5 variables, 1-26
-#	3. keystates => 26 variables, 0-3 (white, yellow, green, grey) for the keyboard states -- wordle_keyboard_a
+#	3. keystates => 26 variables, 1-4 -- wordle_keyboard_a
 #	4. Cursor => current row of gameplay, 1-6; also column cursor, 1-5
 #	5. Show => variables for every cell and every keyboard cell to store flags for letter & color
 #	
@@ -157,32 +157,32 @@ wordle_reset_game = {
 	set_variable = { name = wordle_cell_6_5 value = 0 }
 
 	# clear all keyboard states
-	set_variable = { name = wordle_keyboard_a value = 0 }
-	set_variable = { name = wordle_keyboard_b value = 0 }
-	set_variable = { name = wordle_keyboard_c value = 0 }
-	set_variable = { name = wordle_keyboard_d value = 0 }
-	set_variable = { name = wordle_keyboard_e value = 0 }
-	set_variable = { name = wordle_keyboard_f value = 0 }
-	set_variable = { name = wordle_keyboard_g value = 0 }
-	set_variable = { name = wordle_keyboard_h value = 0 }
-	set_variable = { name = wordle_keyboard_i value = 0 }
-	set_variable = { name = wordle_keyboard_j value = 0 }
-	set_variable = { name = wordle_keyboard_k value = 0 }
-	set_variable = { name = wordle_keyboard_l value = 0 }
-	set_variable = { name = wordle_keyboard_m value = 0 }
-	set_variable = { name = wordle_keyboard_n value = 0 }
-	set_variable = { name = wordle_keyboard_o value = 0 }
-	set_variable = { name = wordle_keyboard_p value = 0 }
-	set_variable = { name = wordle_keyboard_q value = 0 }
-	set_variable = { name = wordle_keyboard_r value = 0 }
-	set_variable = { name = wordle_keyboard_s value = 0 }
-	set_variable = { name = wordle_keyboard_t value = 0 }
-	set_variable = { name = wordle_keyboard_u value = 0 }
-	set_variable = { name = wordle_keyboard_v value = 0 }
-	set_variable = { name = wordle_keyboard_w value = 0 }
-	set_variable = { name = wordle_keyboard_x value = 0 }
-	set_variable = { name = wordle_keyboard_y value = 0 }
-	set_variable = { name = wordle_keyboard_z value = 0 }
+	set_variable = { name = wordle_keyboard_a value = 1 }
+	set_variable = { name = wordle_keyboard_b value = 1 }
+	set_variable = { name = wordle_keyboard_c value = 1 }
+	set_variable = { name = wordle_keyboard_d value = 1 }
+	set_variable = { name = wordle_keyboard_e value = 1 }
+	set_variable = { name = wordle_keyboard_f value = 1 }
+	set_variable = { name = wordle_keyboard_g value = 1 }
+	set_variable = { name = wordle_keyboard_h value = 1 }
+	set_variable = { name = wordle_keyboard_i value = 1 }
+	set_variable = { name = wordle_keyboard_j value = 1 }
+	set_variable = { name = wordle_keyboard_k value = 1 }
+	set_variable = { name = wordle_keyboard_l value = 1 }
+	set_variable = { name = wordle_keyboard_m value = 1 }
+	set_variable = { name = wordle_keyboard_n value = 1 }
+	set_variable = { name = wordle_keyboard_o value = 1 }
+	set_variable = { name = wordle_keyboard_p value = 1 }
+	set_variable = { name = wordle_keyboard_q value = 1 }
+	set_variable = { name = wordle_keyboard_r value = 1 }
+	set_variable = { name = wordle_keyboard_s value = 1 }
+	set_variable = { name = wordle_keyboard_t value = 1 }
+	set_variable = { name = wordle_keyboard_u value = 1 }
+	set_variable = { name = wordle_keyboard_v value = 1 }
+	set_variable = { name = wordle_keyboard_w value = 1 }
+	set_variable = { name = wordle_keyboard_x value = 1 }
+	set_variable = { name = wordle_keyboard_y value = 1 }
+	set_variable = { name = wordle_keyboard_z value = 1 }
 
 	# reset show
 	wordle_reset_show = yes
@@ -1057,6 +1057,7 @@ wordle_green_pass = {
         }
         wordle_show_cell = { var = wordle_cell_$r$_$c$ r = $r$ c = $c$ color = green }
         wordle_dec_letter_counter = { var = wordle_cell_$r$_$c$ }
+        wordle_keyboard_update_wrapper = { var = wordle_cell_$r$_$c$ val = 4 }
     }
 }
 
@@ -1072,8 +1073,10 @@ wordle_yellow_pass = {
             }
             wordle_show_cell = { var = wordle_cell_$r$_$c$ r = $r$ c = $c$ color = yellow }
             wordle_dec_letter_counter = { var = wordle_cell_$r$_$c$ }
+            wordle_keyboard_update_wrapper = { var = wordle_cell_$r$_$c$ val = 3 }
         } else = {
             wordle_show_cell = { var = wordle_cell_$r$_$c$ r = $r$ c = $c$ color = gray }
+            wordle_keyboard_update_wrapper = { var = wordle_cell_$r$_$c$ val = 2 }
         }
     }
 }
@@ -1111,7 +1114,7 @@ wordle_show_unfinished_row = {
     wordle_show_cell = { var = wordle_cell_$r$_5 r = $r$ c = 5 color = white }
 }
 
-# recompute show - todo ADD IN COLORS
+# recompute show
 wordle_recompute_show = {
     if = {
         limit = { var:wordle_row_cursor > 1 }
@@ -1148,5 +1151,116 @@ wordle_recompute_show = {
         wordle_show_row = { r = 6 }
     } else = {
         wordle_show_unfinished_row = { r = 6 }
+    }
+
+    wordle_keyboard_show = yes
+}
+
+# 1 - white, 2 - gray, 3 - yellow, 4 - green
+# gray and green cannot be changed but yellow can promote to green
+# use variable value in $var$ to identify the key [wordle_keyboard_<letter>]
+# use the current value in the key to promote/demote
+# $var$ $val$
+wordle_keyboard_update_wrapper = {
+    # get comparable value
+    set_variable = { name = temp value = $val$ }
+
+    # update the key
+    if = { limit = { var:$var$ = 1 } wordle_keyboard_update = { key = wordle_keyboard_a } }
+    if = { limit = { var:$var$ = 2 } wordle_keyboard_update = { key = wordle_keyboard_b } }
+    if = { limit = { var:$var$ = 3 } wordle_keyboard_update = { key = wordle_keyboard_c } }
+    if = { limit = { var:$var$ = 4 } wordle_keyboard_update = { key = wordle_keyboard_d } }
+    if = { limit = { var:$var$ = 5 } wordle_keyboard_update = { key = wordle_keyboard_e } }
+    if = { limit = { var:$var$ = 6 } wordle_keyboard_update = { key = wordle_keyboard_f } }
+    if = { limit = { var:$var$ = 7 } wordle_keyboard_update = { key = wordle_keyboard_g } }
+    if = { limit = { var:$var$ = 8 } wordle_keyboard_update = { key = wordle_keyboard_h } }
+    if = { limit = { var:$var$ = 9 } wordle_keyboard_update = { key = wordle_keyboard_i } }
+    if = { limit = { var:$var$ = 10 } wordle_keyboard_update = { key = wordle_keyboard_j } }
+    if = { limit = { var:$var$ = 11 } wordle_keyboard_update = { key = wordle_keyboard_k } }
+    if = { limit = { var:$var$ = 12 } wordle_keyboard_update = { key = wordle_keyboard_l } }
+    if = { limit = { var:$var$ = 13 } wordle_keyboard_update = { key = wordle_keyboard_m } }
+    if = { limit = { var:$var$ = 14 } wordle_keyboard_update = { key = wordle_keyboard_n } }
+    if = { limit = { var:$var$ = 15 } wordle_keyboard_update = { key = wordle_keyboard_o } }
+    if = { limit = { var:$var$ = 16 } wordle_keyboard_update = { key = wordle_keyboard_p } }
+    if = { limit = { var:$var$ = 17 } wordle_keyboard_update = { key = wordle_keyboard_q } }
+    if = { limit = { var:$var$ = 18 } wordle_keyboard_update = { key = wordle_keyboard_r } }
+    if = { limit = { var:$var$ = 19 } wordle_keyboard_update = { key = wordle_keyboard_s } }
+    if = { limit = { var:$var$ = 20 } wordle_keyboard_update = { key = wordle_keyboard_t } }
+    if = { limit = { var:$var$ = 21 } wordle_keyboard_update = { key = wordle_keyboard_u } }
+    if = { limit = { var:$var$ = 22 } wordle_keyboard_update = { key = wordle_keyboard_v } }
+    if = { limit = { var:$var$ = 23 } wordle_keyboard_update = { key = wordle_keyboard_w } }
+    if = { limit = { var:$var$ = 24 } wordle_keyboard_update = { key = wordle_keyboard_x } }
+    if = { limit = { var:$var$ = 25 } wordle_keyboard_update = { key = wordle_keyboard_y } }
+    if = { limit = { var:$var$ = 26 } wordle_keyboard_update = { key = wordle_keyboard_z } }
+}
+
+# $key$ (this is a child of the above effect)
+wordle_keyboard_update = {
+    # if white, set to temp
+    # if yellow and temp is 4, set to temp
+    if = {
+        limit = {
+            OR = {
+                var:$key$ = 1
+                AND = {
+                    var:$key$ = 3
+                    temp = 4
+                }
+            }
+        }
+        set_variable = { name = $key$ value = var:temp }
+    }
+}
+
+wordle_keyboard_show = {
+    wordle_key_show = { ll = a lu = A }
+    wordle_key_show = { ll = b lu = B }
+    wordle_key_show = { ll = c lu = C }
+    wordle_key_show = { ll = d lu = D }
+    wordle_key_show = { ll = e lu = E }
+    wordle_key_show = { ll = f lu = F }
+    wordle_key_show = { ll = g lu = G }
+    wordle_key_show = { ll = h lu = H }
+    wordle_key_show = { ll = i lu = I }
+    wordle_key_show = { ll = j lu = J }
+    wordle_key_show = { ll = k lu = K }
+    wordle_key_show = { ll = l lu = L }
+    wordle_key_show = { ll = m lu = M }
+    wordle_key_show = { ll = n lu = N }
+    wordle_key_show = { ll = o lu = O }
+    wordle_key_show = { ll = p lu = P }
+    wordle_key_show = { ll = q lu = Q }
+    wordle_key_show = { ll = r lu = R }
+    wordle_key_show = { ll = s lu = S }
+    wordle_key_show = { ll = t lu = T }
+    wordle_key_show = { ll = u lu = U }
+    wordle_key_show = { ll = v lu = V }
+    wordle_key_show = { ll = w lu = W }
+    wordle_key_show = { ll = x lu = X }
+    wordle_key_show = { ll = y lu = Y }
+    wordle_key_show = { ll = z lu = Z }
+}
+
+wordle_key_show = {
+    if = {
+        limit = {
+            var:wordle_keyboard_$ll$ = 1
+        }
+        set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_white }
+    } else_if = {
+        limit = {
+            var:wordle_keyboard_$ll$ = 2
+        }
+        set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_gray }
+    } else_if = {
+        limit = {
+            var:wordle_keyboard_$ll$ = 3
+        }
+        set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_yellow }
+    } else_if = {
+        limit = {
+            var:wordle_keyboard_$ll$ = 4
+        }
+        set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_green }
     }
 }
