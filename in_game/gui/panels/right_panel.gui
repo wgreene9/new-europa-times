@@ -24,19 +24,36 @@ types RightPanelTypes
 				filter_mouse = all
 
 				## CORNER1
-				# wordle
-				button = {
+				# minigames
+				widget = {
 					parentanchor = left
 					widgetanchor = right
+					position = { 0 0 }
+					size = { 45 90 }
+					layer = top
+					vbox = {
+						# wordle
+						button = {
+							size = { 45 45 }
 
-					size = { 52 52 }
+							onclick = "[GetScriptedGui('wordle_init_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+							onclick = "[ExecuteConsoleCommand( Select_CString( GetVariableSystem.Exists('wordle_window_open'), 'gui.ClearWidgets wordle_window', 'gui.createwidget gui/wordle_window.gui wordle_window' ) )]"
+							onclick = "[GetVariableSystem.Toggle('wordle_window_open')]"
 
-					onclick = "[GetScriptedGui('wordle_init_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
-					onclick = "[ExecuteConsoleCommand( Select_CString( GetVariableSystem.Exists('wordle_window_open'), 'gui.ClearWidgets wordle_window', 'gui.createwidget gui/wordle_window.gui wordle_window' ) )]"
-					onclick = "[GetVariableSystem.Toggle('wordle_window_open')]"
+							texture = "gfx/interface/icons/wordle/letter-A-green.dds"
+						}
+						# connections
+						button = {
+							size = { 45 45 }
 
-					texture = "gfx/wordle/letter-A-green.dds"
-    				using = bg_age_event_frame
+							onclick = "[GetScriptedGui('cxn_init_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+							onclick = "[ExecuteConsoleCommand( Select_CString( GetVariableSystem.Exists('cxn_window_open'), 'gui.ClearWidgets cxn_window', 'gui.createwidget gui/cxn_window.gui cxn_window' ) )]"
+							onclick = "[GetVariableSystem.Toggle('cxn_window_open')]"
+
+							texture = "gfx/interface/icons/connections/tile-selected.dds"
+						}
+						#expand = {}
+					}
 				}
 
 				flowcontainer = {
