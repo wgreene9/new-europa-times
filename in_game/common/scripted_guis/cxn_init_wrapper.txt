@@ -1,0 +1,1 @@
+﻿cxn_init_wrapper = { effect = { cxn_open_window = yes } }

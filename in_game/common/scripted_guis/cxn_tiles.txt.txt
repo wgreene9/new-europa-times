@@ -1,0 +1,26 @@
+﻿cxn_button_1 = { effect = { cxn_press_tile = { tile = 1 } } }
+cxn_button_2 = { effect = { cxn_press_tile = { tile = 2 } } }
+cxn_button_3 = { effect = { cxn_press_tile = { tile = 3 } } }
+cxn_button_4 = { effect = { cxn_press_tile = { tile = 4 } } }
+cxn_button_5 = { effect = { cxn_press_tile = { tile = 5 } } }
+cxn_button_6 = { effect = { cxn_press_tile = { tile = 6 } } }
+cxn_button_7 = { effect = { cxn_press_tile = { tile = 7 } } }
+cxn_button_8 = { effect = { cxn_press_tile = { tile = 8 } } }
+cxn_button_9 = { effect = { cxn_press_tile = { tile = 9 } } }
+cxn_button_10 = { effect = { cxn_press_tile = { tile = 10 } } }
+cxn_button_11 = { effect = { cxn_press_tile = { tile = 11 } } }
+cxn_button_12 = { effect = { cxn_press_tile = { tile = 12 } } }
+cxn_button_13 = { effect = { cxn_press_tile = { tile = 13 } } }
+cxn_button_14 = { effect = { cxn_press_tile = { tile = 14 } } }
+cxn_button_15 = { effect = { cxn_press_tile = { tile = 15 } } }
+cxn_button_16 = { effect = { cxn_press_tile = { tile = 16 } } }
+
+cxn_row_1_v = { is_shown = { var:cxn_solved_1 = 0 } }
+cxn_row_2_v = { is_shown = { var:cxn_solved_2 = 0 } }
+cxn_row_3_v = { is_shown = { var:cxn_solved_3 = 0 } }
+cxn_row_4_v = { is_shown = { var:cxn_solved_4 = 0 } }
+
+cxn_solbar_1_v = { is_shown = { NOT = { var:cxn_solved_1 = 0 } } }
+cxn_solbar_2_v = { is_shown = { NOT = { var:cxn_solved_2 = 0 } } }
+cxn_solbar_3_v = { is_shown = { NOT = { var:cxn_solved_3 = 0 } } }
+cxn_solbar_4_v = { is_shown = { NOT = { var:cxn_solved_4 = 0 } } }
