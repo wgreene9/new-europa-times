@@ -13,7 +13,9 @@ What it does:
   2. Fetches the Connections categories from the NYT puzzle service.
   3. Rewrites main_menu/localization/english/wu_solutions_l_english.yml with
      the new keys, replacing the previous day's.
-  4. Rewrites the "version" value in .metadata/metadata.json to YY.MMDD.
+  4. Repoints the wordle_true_* variables in the scripted effect at the answer.
+  5. Rewrites the "version" value in .metadata/metadata.json to YY.MMDD.
+  6. Prepends a change-notes entry for that version, when the version moved.
 
 Standard library only - nothing to install on the runner.
 
@@ -29,6 +31,7 @@ import datetime as dt
 import json
 import os
 import re
+import string
 import sys
 import time
 import urllib.error
@@ -40,11 +43,20 @@ CONNECTIONS_URL = "https://www.nytimes.com/svc/connections/v2/{date}.json"
 USER_AGENT = "wordle-universalis-solution-update/1.0 (+github-actions)"
 
 LOC_PATH = "main_menu/localization/english/wu_solutions_l_english.yml"
+EFFECT_PATH = "in_game/common/scripted_effects/wordle_fetch_true_solution.txt"
 METADATA_PATH = ".metadata/metadata.json"
+CHANGE_NOTES_PATH = "assets/workshop/change-notes.bbcode"
 
 # Matches the "version": "..." pair in metadata.json without touching byte-order
 # marks, CRLF line endings or tab indentation elsewhere in the file.
 VERSION_RE = re.compile(rb'("version"\s*:\s*")([^"]*)(")')
+
+UTF8_BOM = b"\xef\xbb\xbf"
+
+
+def effect_var_re(name: str) -> "re.Pattern[str]":
+    """Match the numeric value of one `set_variable = { name = <name> value = N }`."""
+    return re.compile(r"(name\s*=\s*" + re.escape(name) + r"\s+value\s*=\s*)(-?\d+)")
 
 
 class SolutionError(RuntimeError):
@@ -155,6 +167,47 @@ def fetch_connections(date: dt.date) -> dict:
 # writing
 # --------------------------------------------------------------------------- #
 
+def read_text_file(path: str) -> "tuple[str, bool, str] | None":
+    """Return (text, had_bom, newline) for a file, or None when it is missing."""
+    try:
+        with open(path, "rb") as handle:
+            raw = handle.read()
+    except FileNotFoundError:
+        return None
+
+    had_bom = raw.startswith(UTF8_BOM)
+    if had_bom:
+        raw = raw[len(UTF8_BOM):]
+    text = raw.decode("utf-8")
+    return text, had_bom, "\r\n" if "\r\n" in text else "\n"
+
+
+def write_text_file(path: str, text: str, had_bom: bool) -> bool:
+    """Write text back with the byte-order mark it came with. True if changed."""
+    payload = (UTF8_BOM if had_bom else b"") + text.encode("utf-8")
+    try:
+        with open(path, "rb") as handle:
+            if handle.read() == payload:
+                return False
+    except FileNotFoundError:
+        pass
+
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "wb") as handle:
+        handle.write(payload)
+    return True
+
+
+def letter_indices(solution: str) -> "list[int]":
+    """Map a five-letter answer onto 1-26 per letter (A=1 ... Z=26)."""
+    if len(solution) != 5 or any(c not in string.ascii_uppercase for c in solution):
+        raise SolutionError(
+            f"Wordle answer {solution!r} is not five A-Z letters; the scripted "
+            f"effect only has five slots, so refusing to guess."
+        )
+    return [ord(c) - ord("A") + 1 for c in solution]
+
+
 def escape(value: str) -> str:
     """Escape a value for a Paradox localization string."""
     return str(value).replace("\\", "\\\\").replace('"', '\\"')
@@ -204,6 +257,61 @@ def write_loc(path: str, body: str) -> bool:
     with open(path, "wb") as handle:
         handle.write(payload)
     return True
+
+
+def write_effect(path: str, wordle: dict) -> bool:
+    """Repoint the wordle_true_* variables at today's answer.
+
+    Only the six numbers are touched - everything else in the file is left byte
+    for byte as it was, so the effect can grow without this clobbering it.
+    """
+    loaded = read_text_file(path)
+    if loaded is None:
+        raise SolutionError(f"{EFFECT_PATH} is missing; expected the scripted effect to exist.")
+    text, had_bom, _ = loaded
+
+    try:
+        puzzle_id = int(wordle["id"])
+    except (TypeError, ValueError):
+        raise SolutionError(f"Wordle id {wordle['id']!r} is not a number.") from None
+
+    values = {"wordle_true_id": puzzle_id}
+    for slot, index in enumerate(letter_indices(wordle["solution"]), start=1):
+        values[f"wordle_true_{slot}"] = index
+
+    for name, value in values.items():
+        text, hits = effect_var_re(name).subn(
+            lambda match, v=value: f"{match.group(1)}{v}", text, count=1
+        )
+        if hits != 1:
+            raise SolutionError(
+                f"No `set_variable = {{ name = {name} value = ... }}` found in {EFFECT_PATH}."
+            )
+
+    return write_text_file(path, text, had_bom)
+
+
+def prepend_change_note(path: str, version: str, date: dt.date) -> bool:
+    """Put this version's entry at the top of the change notes. No-op if already there.
+
+    `# v<version>:` is the header tools/upload.py keys on, and <version> has to
+    equal the metadata.json version exactly or the Workshop upload finds no entry.
+    """
+    loaded = read_text_file(path)
+    text, had_bom, newline = loaded if loaded is not None else ("", True, "\n")
+
+    header = f"# v{version}:"
+    if any(line.strip() == header for line in text.splitlines()):
+        return False
+
+    stamp = f"{date:%B} {date.day}, {date.year}"
+    entry = f"{header}{newline}- Updated game solutions for {stamp}{newline}"
+
+    body = text.lstrip("\r\n")
+    if body:
+        entry += newline
+
+    return write_text_file(path, entry + body, had_bom)
 
 
 def bump_metadata(path: str, version: str) -> tuple[str, bool]:
@@ -284,7 +392,9 @@ def main(argv: list[str] | None = None) -> int:
 
     version = f"{date:%y}.{date:%m}{date:%d}"
     loc_path = os.path.join(args.repo_root, LOC_PATH)
+    effect_path = os.path.join(args.repo_root, EFFECT_PATH)
     metadata_path = os.path.join(args.repo_root, METADATA_PATH)
+    notes_path = os.path.join(args.repo_root, CHANGE_NOTES_PATH)
 
     print(f"Puzzle date: {date.isoformat()}  ->  version {version}")
 
@@ -308,18 +418,35 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         print("--dry-run: nothing written.\n")
         print(body)
+        print()
+        print(f"{EFFECT_PATH}:")
+        print(f"  wordle_true_id = {wordle['id']}")
+        for slot, index in enumerate(letter_indices(wordle["solution"]), start=1):
+            print(f"  wordle_true_{slot} = {index:<2} ({wordle['solution'][slot - 1]})")
+        print()
+        print(f"{CHANGE_NOTES_PATH}: would prepend")
+        print(f"  # v{version}:")
+        print(f"  - Updated game solutions for {date:%B} {date.day}, {date.year}")
         return 0
 
     try:
         loc_changed = write_loc(loc_path, body)
+        effect_changed = write_effect(effect_path, wordle)
         version, metadata_changed = bump_metadata(metadata_path, version)
+        # The entry is keyed on the version, so it only earns a line when the
+        # version actually moved.
+        notes_changed = (
+            prepend_change_note(notes_path, version, date) if metadata_changed else False
+        )
     except (SolutionError, OSError) as error:
         print(f"::error::{error}", file=sys.stderr)
         return 1
 
-    changed = loc_changed or metadata_changed
+    changed = loc_changed or effect_changed or metadata_changed or notes_changed
     print(f"{LOC_PATH}: {'updated' if loc_changed else 'unchanged'}")
+    print(f"{EFFECT_PATH}: {'updated' if effect_changed else 'unchanged'}")
     print(f"{METADATA_PATH}: {'version -> ' + version if metadata_changed else 'unchanged'}")
+    print(f"{CHANGE_NOTES_PATH}: {'added v' + version if notes_changed else 'unchanged'}")
 
     emit_outputs(
         version=version,
