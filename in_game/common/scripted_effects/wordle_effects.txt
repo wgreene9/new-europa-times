@@ -14,7 +14,6 @@
 #######################################
 
 # Set all Show to blank white
-# TODO - reset keyboard cells
 wordle_reset_show = {
 	# cell
 	set_variable = { name = show_wordle_r1_c1 value = flag:blank_white }
@@ -522,7 +521,6 @@ wordle_press_key = {
 }
 
 # press enter
-# GIGA TODO, this needs win checking
 wordle_press_enter = {
     # only do something if game is in progress
     if = {

@@ -1,0 +1,113 @@
+﻿cxn_shuffle_wrapper = {
+	effect = {
+		cxn_shuffle = yes
+		cxn_show = yes
+	}
+}
+
+cxn_deselect_all_wrapper = {
+	effect = {
+		cxn_deselect_all = yes
+	}
+}
+
+cxn_submit_wrapper = {
+	effect = {
+		cxn_submit = yes
+	}
+}
+
+cxn_show_shuffle_button = {
+	is_shown = {
+        var:cxn_mistakes > 0
+			var:cxn_game < 2
+    }
+}
+
+cxn_deselect_all_clickable = {
+    is_shown = {
+        AND = {
+			NOT = { var:cxn_selected_count = 0 }
+			var:cxn_mistakes > 0
+			var:cxn_game < 2
+		}
+    }
+}
+
+cxn_deselect_all_unclickable = {
+    is_shown = {
+		AND = {
+			var:cxn_selected_count = 0
+			var:cxn_mistakes > 0
+			var:cxn_game < 2
+		}
+    }
+}
+
+cxn_submit_clickable = {
+    is_shown = {
+		AND = {
+        	var:cxn_selected_count = 4
+			var:cxn_mistakes > 0
+			var:cxn_game < 2
+		}
+    }
+}
+
+cxn_submit_unclickable = {
+    is_shown = {
+        AND = {
+			NOT = { var:cxn_selected_count = 4 }
+			var:cxn_mistakes > 0
+			var:cxn_game < 2
+		}
+    }
+}
+
+cxn_mistake_4 = {
+	is_shown = {
+		var:cxn_mistakes > 3
+	}
+}
+
+cxn_mistake_3 = {
+	is_shown = {
+		var:cxn_mistakes > 2
+	}
+}
+
+cxn_mistake_2 = {
+	is_shown = {
+		var:cxn_mistakes > 1
+	}
+}
+
+cxn_mistake_1 = {
+	is_shown = {
+		var:cxn_mistakes > 0
+	}
+}
+
+cxn_mistake_4_inv = {
+	is_shown = {
+		var:cxn_mistakes < 4
+	}
+}
+
+cxn_mistake_3_inv = {
+	is_shown = {
+		var:cxn_mistakes < 3
+	}
+}
+
+cxn_mistake_2_inv = {
+	is_shown = {
+		var:cxn_mistakes < 2
+	}
+}
+
+cxn_mistake_1_inv = {
+	is_shown = {
+		var:cxn_mistakes < 1
+	}
+}

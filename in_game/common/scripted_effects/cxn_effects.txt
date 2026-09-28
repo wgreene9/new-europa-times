@@ -1,0 +1,702 @@
+﻿# Variables cxn_slot_1 - 16 => these store a number from 1-16 that determines the entry in slot (tile) n
+# Variables cxn_solved_1 - 4 => these store a number from 1-4 that determines the category in solved order. 0 => unsolved
+# Variables cxn_solved_texture_1 - 4 => these hold the texture values for the solution bars based on the category in resp. cxn_solved_n
+# Variable cxn_mistakes => holds the number of mistakes left. Starts at 4 and decrements, 0 is a list game
+
+# Opens the window & resets the game if necessary - called through sgui
+cxn_open_window = {
+	# Refresh the true solution
+	cxn_fetch_id = yes
+	# if cache isnt set, reset the game
+	if = {
+		limit = {
+			has_variable = cxn_cached_id
+		}
+		# if game is not in progress, OR cached id differs from true id, reset the game
+		# else do nothing
+		if = {
+			limit = {
+				OR = {
+					NOT = { var:cxn_true_id = var:cxn_cached_id }
+					NOT = { var:cxn_game > 0 }
+				}
+			}
+
+			cxn_reset_game = yes
+		}
+	} else = {
+		cxn_reset_game = yes
+	}
+}
+
+# Resets the game
+cxn_reset_game = {
+	# set cached ID to true ID
+	set_variable = { name = cxn_cached_id value = var:cxn_true_id }
+
+	# start a new game
+	set_variable = { name = cxn_game value = 1 }
+
+	# Deselect all cells
+	cxn_deselect_all = yes
+
+	# reset scoreboard and shuffle all cells
+	set_variable = { name = cxn_solved_1 value = 0 }
+	set_variable = { name = cxn_solved_2 value = 0 }
+	set_variable = { name = cxn_solved_3 value = 0 }
+	set_variable = { name = cxn_solved_4 value = 0 }
+	set_variable = { name = cxn_mistakes value = 4 }
+
+	cxn_shuffle = yes
+	cxn_show = yes
+}
+
+# Deselect all tiles
+cxn_deselect_all = {
+	set_variable = { name = cxn_selected_count value = 0 }
+
+	set_variable = { name = cxn_button_1_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_2_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_3_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_4_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_5_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_6_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_7_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_8_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_9_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_10_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_11_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_12_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_13_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_14_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_15_selected value = flag:cxn_tile_unselected }
+	set_variable = { name = cxn_button_16_selected value = flag:cxn_tile_unselected }
+}
+
+# Press a button
+#	$tile$ - button that is pressed
+cxn_press_tile = {
+	if = {
+		limit = {
+			OR = {
+				var:cxn_mistakes > 0
+				var:cxn_game = 2
+			}
+		}
+		if = {
+			limit = {
+				var:cxn_button_$tile$_selected = flag:cxn_tile_unselected
+			}
+			# tile is unselected, select it
+			if = {
+				limit = {
+					var:cxn_selected_count < 4
+				}
+				change_variable = { name = cxn_selected_count add = 1 }
+				set_variable = { name = cxn_button_$tile$_selected value = flag:cxn_tile_selected }
+			}
+		} else = {
+			# tile is selected, unselect it
+			change_variable = { name = cxn_selected_count subtract = 1 }
+			set_variable = { name = cxn_button_$tile$_selected value = flag:cxn_tile_unselected }
+		}
+	}
+}
+
+# Shuffle --
+#	1. initialize cxn_shuffler_index to 1
+#	2. while loop that excludes indices belonging to a solution
+#	3. Random list - for every remaining value between cxn_var_value and 16 inclusive, set a random slot (without a solution bar in that row) to that value
+cxn_shuffle = {
+	# deselect all
+	cxn_deselect_all = yes
+
+	# Init index
+	set_variable = { name = cxn_shuffler_index value = 1 }
+
+	# Set slots to 0
+	set_variable = { name = cxn_slot_1 value = 0 }
+	set_variable = { name = cxn_slot_2 value = 0 }
+	set_variable = { name = cxn_slot_3 value = 0 }
+	set_variable = { name = cxn_slot_4 value = 0 }
+	set_variable = { name = cxn_slot_5 value = 0 }
+	set_variable = { name = cxn_slot_6 value = 0 }
+	set_variable = { name = cxn_slot_7 value = 0 }
+	set_variable = { name = cxn_slot_8 value = 0 }
+	set_variable = { name = cxn_slot_9 value = 0 }
+	set_variable = { name = cxn_slot_10 value = 0 }
+	set_variable = { name = cxn_slot_11 value = 0 }
+	set_variable = { name = cxn_slot_12 value = 0 }
+	set_variable = { name = cxn_slot_13 value = 0 }
+	set_variable = { name = cxn_slot_14 value = 0 }
+	set_variable = { name = cxn_slot_15 value = 0 }
+	set_variable = { name = cxn_slot_16 value = 0 }
+
+	while = {
+		limit = {
+			var:cxn_shuffler_index <= 16
+		}
+
+		# If the shuffler index is 1-4 and there is a solution cat 1, 5-8 with cat 2, etc. then skip
+		if = {
+			limit = {
+				OR = {
+					# between 1-4
+					AND = {
+						var:cxn_shuffler_index > 0
+						var:cxn_shuffler_index < 5
+						OR = {
+							var:cxn_solved_1 = 1
+							var:cxn_solved_2 = 1
+							var:cxn_solved_3 = 1
+							var:cxn_solved_4 = 1
+						}
+					}
+					# between 5-8
+					AND = {
+						var:cxn_shuffler_index > 4
+						var:cxn_shuffler_index < 9
+						OR = {
+							var:cxn_solved_1 = 2
+							var:cxn_solved_2 = 2
+							var:cxn_solved_3 = 2
+							var:cxn_solved_4 = 2
+						}
+					}
+					# between 9-12
+					AND = {
+						var:cxn_shuffler_index > 8
+						var:cxn_shuffler_index < 13
+						OR = {
+							var:cxn_solved_1 = 3
+							var:cxn_solved_2 = 3
+							var:cxn_solved_3 = 3
+							var:cxn_solved_4 = 3
+						}
+					}
+					# between 13-16
+					AND = {
+						var:cxn_shuffler_index > 12
+						var:cxn_shuffler_index < 17
+						OR = {
+							var:cxn_solved_1 = 4
+							var:cxn_solved_2 = 4
+							var:cxn_solved_3 = 4
+							var:cxn_solved_4 = 4
+						}
+					}
+				}
+			}
+			# more readable than NOT-ting the thing above
+			# and idt empty ifs work
+			set_variable = { name = cxn_unused value = 1 }
+		} else = {
+			# This is a valid item to shuffle
+			# Random list
+			random_list = {
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_1 = 0
+							var:cxn_slot_1 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_1 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_1 = 0
+							var:cxn_slot_2 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_2 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_1 = 0
+							var:cxn_slot_3 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_3 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_1 = 0
+							var:cxn_slot_4 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_4 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_2 = 0
+							var:cxn_slot_5 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_5 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_2 = 0
+							var:cxn_slot_6 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_6 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_2 = 0
+							var:cxn_slot_7 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_7 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_2 = 0
+							var:cxn_slot_8 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_8 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_3 = 0
+							var:cxn_slot_9 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_9 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_3 = 0
+							var:cxn_slot_10 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_10 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_3 = 0
+							var:cxn_slot_11 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_11 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_3 = 0
+							var:cxn_slot_12 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_12 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_4 = 0
+							var:cxn_slot_13 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_13 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_4 = 0
+							var:cxn_slot_14 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_14 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_4 = 0
+							var:cxn_slot_15 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_15 value = var:cxn_shuffler_index }
+				}
+				1 = {
+					trigger = {
+						AND = {
+							var:cxn_solved_4 = 0
+							var:cxn_slot_16 = 0
+						}
+					}
+					set_variable = { name = cxn_slot_16 value = var:cxn_shuffler_index }
+				}
+			}
+		}
+
+		# Increment counter
+		change_variable = { name = cxn_shuffler_index add = 1 }
+	}
+}
+
+# Display --
+#	For each slot, set the resp button to the resp localization
+# 	Don't need to worry about solutions; submit takes care of that
+cxn_show = {
+	# Slots
+	cxn_show_slot_helper = { i = 1 }
+	cxn_show_slot_helper = { i = 2 }
+	cxn_show_slot_helper = { i = 3 }
+	cxn_show_slot_helper = { i = 4 }
+	cxn_show_slot_helper = { i = 5 }
+	cxn_show_slot_helper = { i = 6 }
+	cxn_show_slot_helper = { i = 7 }
+	cxn_show_slot_helper = { i = 8 }
+	cxn_show_slot_helper = { i = 9 }
+	cxn_show_slot_helper = { i = 10 }
+	cxn_show_slot_helper = { i = 11 }
+	cxn_show_slot_helper = { i = 12 }
+	cxn_show_slot_helper = { i = 13 }
+	cxn_show_slot_helper = { i = 14 }
+	cxn_show_slot_helper = { i = 15 }
+	cxn_show_slot_helper = { i = 16 }
+}
+
+cxn_show_slot_helper = {
+	if = {
+		limit = { var:cxn_slot_$i$ = 1 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_1 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 2 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_2 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 3 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_3 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 4 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_4 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 5 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_5 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 6 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_6 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 7 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_7 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 8 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_8 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 9 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_9 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 10 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_10 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 11 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_11 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 12 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_12 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 13 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_13 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 14 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_14 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 15 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_15 }
+	} else_if = {
+		limit = { var:cxn_slot_$i$ = 16 }
+		set_variable = { name = cxn_flag_$i$ value = flag:cxn_word_16 }
+	}
+}
+
+# Submit --
+#	1. If 4 tiles arent selected, do nothing
+#	2. save 4 selected into the holder variables
+#	3. check if the 4 selected are 1234 5678 etc.
+#		- if they are, save into solution var and reshuffle / reshow
+#		- if they aren't, mark a mistake
+cxn_submit = {
+	if = {
+		limit = {
+			AND = {
+				var:cxn_selected_count = 4
+				var:cxn_mistakes > 0
+			}
+		}
+
+		# 4 are selected. Identify the 4 selected and save them into variables
+		# Variables - cxn_select_temp_1 - 4
+
+		set_variable = { name = cxn_submit_counter value = 0 }
+		
+		# save variables with helper function
+		cxn_submit_helper = { tile = 1 }
+		cxn_submit_helper = { tile = 2 }
+		cxn_submit_helper = { tile = 3 }
+		cxn_submit_helper = { tile = 4 }
+		cxn_submit_helper = { tile = 5 }
+		cxn_submit_helper = { tile = 6 }
+		cxn_submit_helper = { tile = 7 }
+		cxn_submit_helper = { tile = 8 }
+		cxn_submit_helper = { tile = 9 }
+		cxn_submit_helper = { tile = 10 }
+		cxn_submit_helper = { tile = 11 }
+		cxn_submit_helper = { tile = 12 }
+		cxn_submit_helper = { tile = 13 }
+		cxn_submit_helper = { tile = 14 }
+		cxn_submit_helper = { tile = 15 }
+		cxn_submit_helper = { tile = 16 }
+
+		# 4 values are saved in the temps
+
+		debug_log = "SEARCH STRING"
+		debug_log = "cxn_select_temp_1: [SCOPE.GetLocalVariable('cxn_select_temp_1').GetValue]"
+		debug_log = "cxn_select_temp_2: [SCOPE.GetLocalVariable('cxn_select_temp_2').GetValue]"
+		debug_log = "cxn_select_temp_3: [SCOPE.GetLocalVariable('cxn_select_temp_3').GetValue]"
+		debug_log = "cxn_select_temp_4: [SCOPE.GetLocalVariable('cxn_select_temp_4').GetValue]"
+		debug_log = "cxn_submit_counter: [SCOPE.GetLocalVariable('cxn_submit_counter').GetValue]"
+
+		# flag var
+		set_variable = { name = cxn_submit_solution value = 0 }	# 1 - real solution 0 - mental illness
+
+		# Check if the variables stored are 1234, 5678, 9101112, 13141516 in order
+		if = {
+			limit = {
+				AND = {
+					OR = {
+						var:cxn_select_temp_1 = 1
+						var:cxn_select_temp_2 = 1
+						var:cxn_select_temp_3 = 1
+						var:cxn_select_temp_4 = 1
+					}
+					OR = {
+						var:cxn_select_temp_1 = 2
+						var:cxn_select_temp_2 = 2
+						var:cxn_select_temp_3 = 2
+						var:cxn_select_temp_4 = 2
+					}
+					OR = {
+						var:cxn_select_temp_1 = 3
+						var:cxn_select_temp_2 = 3
+						var:cxn_select_temp_3 = 3
+						var:cxn_select_temp_4 = 3
+					}
+					OR = {
+						var:cxn_select_temp_1 = 4
+						var:cxn_select_temp_2 = 4
+						var:cxn_select_temp_3 = 4
+						var:cxn_select_temp_4 = 4
+					}
+				}
+			}
+			# Values are 1234
+			cxn_add_solution = { val = 1 }
+			set_variable = { name = cxn_submit_solution value = 1 }
+		} else_if = {
+			limit = {
+				AND = {
+					OR = {
+						var:cxn_select_temp_1 = 5
+						var:cxn_select_temp_2 = 5
+						var:cxn_select_temp_3 = 5
+						var:cxn_select_temp_4 = 5
+					}
+					OR = {
+						var:cxn_select_temp_1 = 6
+						var:cxn_select_temp_2 = 6
+						var:cxn_select_temp_3 = 6
+						var:cxn_select_temp_4 = 6
+					}
+					OR = {
+						var:cxn_select_temp_1 = 7
+						var:cxn_select_temp_2 = 7
+						var:cxn_select_temp_3 = 7
+						var:cxn_select_temp_4 = 7
+					}
+					OR = {
+						var:cxn_select_temp_1 = 8
+						var:cxn_select_temp_2 = 8
+						var:cxn_select_temp_3 = 8
+						var:cxn_select_temp_4 = 8
+					}
+				}
+			}
+			# Values are 5678
+			cxn_add_solution = { val = 2 }
+			set_variable = { name = cxn_submit_solution value = 1 }
+		} else_if = {
+			limit = {
+				AND = {
+					OR = {
+						var:cxn_select_temp_1 = 9
+						var:cxn_select_temp_2 = 9
+						var:cxn_select_temp_3 = 9
+						var:cxn_select_temp_4 = 9
+					}
+					OR = {
+						var:cxn_select_temp_1 = 10
+						var:cxn_select_temp_2 = 10
+						var:cxn_select_temp_3 = 10
+						var:cxn_select_temp_4 = 10
+					}
+					OR = {
+						var:cxn_select_temp_1 = 11
+						var:cxn_select_temp_2 = 11
+						var:cxn_select_temp_3 = 11
+						var:cxn_select_temp_4 = 11
+					}
+					OR = {
+						var:cxn_select_temp_1 = 12
+						var:cxn_select_temp_2 = 12
+						var:cxn_select_temp_3 = 12
+						var:cxn_select_temp_4 = 12
+					}
+				}
+			}
+			# Values are 9 10 11 12
+			cxn_add_solution = { val = 3 }
+			set_variable = { name = cxn_submit_solution value = 1 }
+		} else_if = {
+			limit = {
+				AND = {
+					OR = {
+						var:cxn_select_temp_1 = 13
+						var:cxn_select_temp_2 = 13
+						var:cxn_select_temp_3 = 13
+						var:cxn_select_temp_4 = 13
+					}
+					OR = {
+						var:cxn_select_temp_1 = 14
+						var:cxn_select_temp_2 = 14
+						var:cxn_select_temp_3 = 14
+						var:cxn_select_temp_4 = 14
+					}
+					OR = {
+						var:cxn_select_temp_1 = 15
+						var:cxn_select_temp_2 = 15
+						var:cxn_select_temp_3 = 15
+						var:cxn_select_temp_4 = 15
+					}
+					OR = {
+						var:cxn_select_temp_1 = 16
+						var:cxn_select_temp_2 = 16
+						var:cxn_select_temp_3 = 16
+						var:cxn_select_temp_4 = 16
+					}
+				}
+			}
+			# Values are 13 14 15 16
+			cxn_add_solution = { val = 4 }
+			set_variable = { name = cxn_submit_solution value = 1 }
+		}
+
+		# if solved successfully, deselect all & show; or else increase mistakes by 1
+		if = {
+			limit = {
+				var:cxn_submit_solution = 1
+			}
+			cxn_shuffle = yes
+			cxn_deselect_all = yes
+			cxn_show = yes
+
+			if = {
+				limit = {
+					AND = {
+						var:cxn_solved_1 > 0
+						var:cxn_solved_2 > 0
+						var:cxn_solved_3 > 0
+						var:cxn_solved_4 > 0
+					}
+				}
+				set_variable = {
+					name = cxn_game
+					value = 2
+				}
+			}
+		} else = {
+			change_variable = { name = cxn_mistakes subtract = 1 }
+			if = {
+				limit = {
+					var:cxn_mistakes = 0
+				}
+				cxn_deselect_all = yes
+			}
+		}
+	}
+}
+
+# helper for submit
+cxn_submit_helper = {
+	if = {
+		limit = {
+			var:cxn_button_$tile$_selected = flag:cxn_tile_selected
+		}
+		if = {
+			limit = {
+				var:cxn_submit_counter = 0
+			}
+			set_variable = { name = cxn_select_temp_1 value = var:cxn_slot_$tile$ }
+		} else_if = {
+			limit = {
+				var:cxn_submit_counter = 1
+			}
+			set_variable = { name = cxn_select_temp_2 value = var:cxn_slot_$tile$ }
+		} else_if = {
+			limit = {
+				var:cxn_submit_counter = 2
+			}
+			set_variable = { name = cxn_select_temp_3 value = var:cxn_slot_$tile$ }
+		} else_if = {
+			limit = {
+				var:cxn_submit_counter = 3
+			}
+			set_variable = { name = cxn_select_temp_4 value = var:cxn_slot_$tile$ }
+		}
+		change_variable = { name = cxn_submit_counter add = 1 }
+	}
+}
+
+# helper for submit
+cxn_add_solution = {
+	if = {
+		limit = {
+			var:cxn_solved_1 = 0
+		}
+		set_variable = { name = cxn_solved_1 value = $val$ }
+		set_variable = { name = cxn_solved_texture_1 value = flag:cxn_sol_$val$ }
+		set_variable = { name = cxn_solved_text_1 value = flag:cxn_cat_$val$ }
+	} else_if = {
+		limit = {
+			var:cxn_solved_2 = 0
+		}
+		set_variable = { name = cxn_solved_2 value = $val$ }
+		set_variable = { name = cxn_solved_texture_2 value = flag:cxn_sol_$val$ }
+		set_variable = { name = cxn_solved_text_2 value = flag:cxn_cat_$val$ }
+	} else_if = {
+		limit = {
+			var:cxn_solved_3 = 0
+		}
+		set_variable = { name = cxn_solved_3 value = $val$ }
+		set_variable = { name = cxn_solved_texture_3 value = flag:cxn_sol_$val$ }
+		set_variable = { name = cxn_solved_text_3 value = flag:cxn_cat_$val$ }
+	} else_if = {
+		limit = {
+			var:cxn_solved_4 = 0
+		}
+		set_variable = { name = cxn_solved_4 value = $val$ }
+		set_variable = { name = cxn_solved_texture_4 value = flag:cxn_sol_$val$ }
+		set_variable = { name = cxn_solved_text_4 value = flag:cxn_cat_$val$ }
+	}
+}

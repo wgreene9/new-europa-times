@@ -1,0 +1,3 @@
+﻿cxn_fetch_id = {
+	set_variable = { name = cxn_true_id value = 1303 }
+}
