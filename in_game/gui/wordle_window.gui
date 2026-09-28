@@ -215,7 +215,6 @@ window = {
 			}
 
 			hbox = {
-				margin_left = 6
 				button = {
 					size = { 32 32 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_a').GetFlagName)]"
@@ -313,9 +312,9 @@ window = {
 
 			hbox = {
 				margin_top = 50
+				spacing = 15
 				# Close button
 				button_regular_diamond = {
-					name = "goto_button"
 					tooltip_enabled = no
 					using = button_resize_to_fit_text
 
@@ -325,6 +324,30 @@ window = {
 
 					onclick = "[ExecuteConsoleCommand('gui.ClearWidgets wordle_window')]"
 					onclick = "[GetVariableSystem.Toggle('wordle_window_open')]"
+				}
+
+				button_regular_diamond = {
+					tooltip_enabled = no
+					using = button_resize_to_fit_text
+
+					block "goto_title" {
+						text = "Screenshot Mode"
+					}
+					
+					onclick = "[GetScriptedGui('wordle_screenshot_mode_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					visible = "[GetScriptedGui('wordle_screenshot_mode_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
+				}
+
+				button_regular_diamond = {
+					tooltip_enabled = no
+					using = button_resize_to_fit_text
+
+					block "goto_title" {
+						text = "Back to Solution"
+					}
+					
+					onclick = "[GetScriptedGui('wordle_remove_screenshot_mode_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					visible = "[GetScriptedGui('wordle_remove_screenshot_mode_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 			}
 			

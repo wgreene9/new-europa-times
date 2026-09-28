@@ -4,7 +4,8 @@ window = {
 	name = "cxn_window"
 	parentanchor = center
 	size = { 800 680 }
-	background = { texture = "gfx/interface/icons/wordle/blank-white.dds" }
+	background = { texture = "gfx/interface/icons/connections/connections-bg.dds" }
+	using = bg_age_event_frame
 
 	widget = {
 		size = { 100% 100% }
@@ -20,7 +21,7 @@ window = {
 					text_single = {
 						autoresize = yes
 						using = Font_Size_Small
-						default_format = "#color_black"
+						default_format = "#color_white"
 						text = "Create four groups of four!"
 						using = Font_Type_Headers
 						fontsize = 18
@@ -405,7 +406,7 @@ window = {
 					text_single = {
 						autoresize = yes
 						using = Font_Size_Small
-						default_format = "#color_black"
+						default_format = "#color_white"
 						text = "Mistakes Remaining:"
 						using = Font_Type_Headers
 						fontsize = 14
@@ -417,7 +418,7 @@ window = {
 
 				icon = {
 					size = { 10 10 }
-					texture = "gfx/interface/icons/connections/tile-selected.dds"
+					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_1').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
@@ -426,7 +427,7 @@ window = {
 				}
 				icon = {
 					size = { 10 10 }
-					texture = "gfx/interface/icons/connections/tile-selected.dds"
+					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_2').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
@@ -435,7 +436,7 @@ window = {
 				}
 				icon = {
 					size = { 10 10 }
-					texture = "gfx/interface/icons/connections/tile-selected.dds"
+					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_3').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
@@ -444,7 +445,7 @@ window = {
 				}
 				icon = {
 					size = { 10 10 }
-					texture = "gfx/interface/icons/connections/tile-selected.dds"
+					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_4').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
@@ -458,7 +459,7 @@ window = {
 				spacing = 10
 				button = {
 					size = { 90 40 }
-					texture = "gfx/interface/icons/connections/tile-unselected.dds"
+					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					onclick = "[GetScriptedGui('cxn_shuffle_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_show_shuffle_button').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
@@ -475,7 +476,7 @@ window = {
 				}
 				button = {
 					size = { 120 40 }
-					texture = "gfx/interface/icons/connections/tile-unselected.dds"
+					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					onclick = "[GetScriptedGui('cxn_deselect_all_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_deselect_all_clickable').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
@@ -493,7 +494,7 @@ window = {
 				button = {
 					size = { 120 40 }
 					enabled = no
-					texture = "gfx/interface/icons/connections/tile-unselected.dds"
+					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					visible = "[GetScriptedGui('cxn_deselect_all_unclickable').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
 						autoresize = yes
@@ -509,7 +510,7 @@ window = {
 				}
 				button = {
 					size = { 90 40 }
-					texture = "gfx/interface/icons/connections/tile-unselected.dds"
+					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					onclick = "[GetScriptedGui('cxn_submit_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_submit_clickable').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
@@ -527,7 +528,7 @@ window = {
 				button = {
 					size = { 90 40 }
 					enabled = no
-					texture = "gfx/interface/icons/connections/tile-unselected.dds"
+					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					visible = "[GetScriptedGui('cxn_submit_unclickable').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
 						autoresize = yes

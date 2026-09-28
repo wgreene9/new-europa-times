@@ -1,0 +1,37 @@
+wordle_screenshot_mode_sgui = {
+	effect = {
+		wordle_screenshot_mode = yes
+		set_variable = wordle_screenshot_mode_var
+	}
+}
+
+wordle_remove_screenshot_mode_sgui = {
+	effect = {
+		wordle_recompute_show = yes
+		remove_variable = wordle_screenshot_mode_var
+	}
+}
+
+wordle_screenshot_mode_v = {
+	is_shown = {
+		AND = {
+			NOT = { has_variable = wordle_screenshot_mode_var }
+			OR = {
+				var:wordle_game = 3
+				var:wordle_game = 2
+			}
+		}
+	}
+}
+
+wordle_remove_screenshot_mode_v = {
+	is_shown = {
+		AND = {
+			has_variable = wordle_screenshot_mode_var
+			OR = {
+				var:wordle_game = 3
+				var:wordle_game = 2
+			}
+		}
+	}
+}

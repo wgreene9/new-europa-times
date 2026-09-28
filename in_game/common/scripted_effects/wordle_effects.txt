@@ -7,6 +7,7 @@
 #	3. keystates => 26 variables, 1-4 -- wordle_keyboard_a
 #	4. Cursor => current row of gameplay, 1-6; also column cursor, 1-5
 #	5. Show => variables for every cell and every keyboard cell to store flags for letter & color
+#   6. wordle_game - 0 not started, 1 in progress, 2 won, 3 lost
 #	
 #	Functionality
 #	1. Reset game when opened, if one isnt in progress OR the true solution has changed from the cached one
@@ -583,6 +584,15 @@ wordle_press_enter = {
 
                 # recompute show
                 wordle_recompute_show = yes
+
+                # check if game is lost
+                if = {
+                    limit = {
+                        var:wordle_row_cursor = 7
+                    }
+                    # lose game
+                    set_variable = { name = wordle_game value = 3 }
+                }
             }
         }
     }
@@ -1260,5 +1270,143 @@ wordle_key_show = {
             var:wordle_keyboard_$ll$ = 4
         }
         set_variable = { name = show_keyboard_$ll$ value = flag:letter_$lu$_green }
+    }
+}
+
+wordle_screenshot_mode = {
+    wordle_screenshot_mode_helper = { r = 1 c = 1 }
+    wordle_screenshot_mode_helper = { r = 1 c = 2 }
+    wordle_screenshot_mode_helper = { r = 1 c = 3 }
+    wordle_screenshot_mode_helper = { r = 1 c = 4 }
+    wordle_screenshot_mode_helper = { r = 1 c = 5 }
+    
+    wordle_screenshot_mode_helper = { r = 2 c = 1 }
+    wordle_screenshot_mode_helper = { r = 2 c = 2 }
+    wordle_screenshot_mode_helper = { r = 2 c = 3 }
+    wordle_screenshot_mode_helper = { r = 2 c = 4 }
+    wordle_screenshot_mode_helper = { r = 2 c = 5 }
+    
+    wordle_screenshot_mode_helper = { r = 3 c = 1 }
+    wordle_screenshot_mode_helper = { r = 3 c = 2 }
+    wordle_screenshot_mode_helper = { r = 3 c = 3 }
+    wordle_screenshot_mode_helper = { r = 3 c = 4 }
+    wordle_screenshot_mode_helper = { r = 3 c = 5 }
+    
+    wordle_screenshot_mode_helper = { r = 4 c = 1 }
+    wordle_screenshot_mode_helper = { r = 4 c = 2 }
+    wordle_screenshot_mode_helper = { r = 4 c = 3 }
+    wordle_screenshot_mode_helper = { r = 4 c = 4 }
+    wordle_screenshot_mode_helper = { r = 4 c = 5 }
+    
+    wordle_screenshot_mode_helper = { r = 5 c = 1 }
+    wordle_screenshot_mode_helper = { r = 5 c = 2 }
+    wordle_screenshot_mode_helper = { r = 5 c = 3 }
+    wordle_screenshot_mode_helper = { r = 5 c = 4 }
+    wordle_screenshot_mode_helper = { r = 5 c = 5 }
+    
+    wordle_screenshot_mode_helper = { r = 6 c = 1 }
+    wordle_screenshot_mode_helper = { r = 6 c = 2 }
+    wordle_screenshot_mode_helper = { r = 6 c = 3 }
+    wordle_screenshot_mode_helper = { r = 6 c = 4 }
+    wordle_screenshot_mode_helper = { r = 6 c = 5 }
+}
+
+wordle_screenshot_mode_helper = {
+    if = {
+        limit = {
+            OR = {
+                var:show_wordle_r$r$_c$c$ = flag:letter_A_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_B_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_C_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_D_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_E_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_F_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_G_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_H_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_I_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_J_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_K_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_L_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_M_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_N_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_O_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_P_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_Q_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_R_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_S_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_T_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_U_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_V_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_W_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_X_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_Y_gray
+                var:show_wordle_r$r$_c$c$ = flag:letter_Z_gray
+            }
+        }
+        set_variable = { name = show_wordle_r$r$_c$c$ value = flag:blank_gray }
+    } else_if = {
+        limit = {
+            OR = {
+                var:show_wordle_r$r$_c$c$ = flag:letter_A_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_B_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_C_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_D_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_E_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_F_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_G_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_H_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_I_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_J_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_K_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_L_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_M_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_N_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_O_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_P_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_Q_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_R_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_S_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_T_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_U_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_V_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_W_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_X_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_Y_yellow
+                var:show_wordle_r$r$_c$c$ = flag:letter_Z_yellow
+            }
+        }
+        set_variable = { name = show_wordle_r$r$_c$c$ value = flag:blank_yellow }
+    } else_if = {
+        limit = {
+            OR = {
+                var:show_wordle_r$r$_c$c$ = flag:letter_A_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_B_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_C_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_D_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_E_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_F_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_G_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_H_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_I_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_J_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_K_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_L_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_M_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_N_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_O_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_P_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_Q_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_R_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_S_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_T_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_U_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_V_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_W_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_X_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_Y_green
+                var:show_wordle_r$r$_c$c$ = flag:letter_Z_green
+            }
+        }
+        set_variable = { name = show_wordle_r$r$_c$c$ value = flag:blank_green }
     }
 }
