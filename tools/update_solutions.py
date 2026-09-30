@@ -13,7 +13,7 @@ What it does:
   2. Fetches the Connections categories from the NYT puzzle service.
   3. Rewrites main_menu/localization/english/wu_solutions_l_english.yml with
      the new keys, replacing the previous day's.
-  4. Repoints the wordle_true_* variables in the scripted effect at the answer.
+  4. Repoints the wordle_true_* and cxn_true_id scripted-effect variables.
   5. Rewrites the "version" value in .metadata/metadata.json to YY.MMDD.
   6. Prepends a change-notes entry for that version, when the version moved.
 
@@ -43,7 +43,8 @@ CONNECTIONS_URL = "https://www.nytimes.com/svc/connections/v2/{date}.json"
 USER_AGENT = "wordle-universalis-solution-update/1.0 (+github-actions)"
 
 LOC_PATH = "main_menu/localization/english/wu_solutions_l_english.yml"
-EFFECT_PATH = "in_game/common/scripted_effects/wordle_fetch_true_solution.txt"
+WORDLE_EFFECT_PATH = "in_game/common/scripted_effects/wordle_fetch_true_solution.txt"
+CXN_EFFECT_PATH = "in_game/common/scripted_effects/cxn_fetch_id.txt"
 METADATA_PATH = ".metadata/metadata.json"
 CHANGE_NOTES_PATH = "assets/workshop/change-notes.bbcode"
 
@@ -230,11 +231,13 @@ def render_loc(date: dt.date, wordle: dict, connections: dict) -> str:
         f' wu_connections_id: "{escape(connections["id"])}"',
     ]
 
+    # Categories are cxn_cat_1..4; the words run straight through as
+    # cxn_word_1..16, so category N owns words (N-1)*4 + 1 .. N*4.
     for index, group in enumerate(connections["groups"], start=1):
         out.append("")
-        out.append(f' wu_connections_cat_{index}: "{escape(group["group"])}"')
+        out.append(f' cxn_cat_{index}: "{escape(group["group"])}"')
         for slot, member in enumerate(group["members"], start=1):
-            out.append(f' wu_connections_cat_{index}_word_{slot}: "{escape(member)}"')
+            out.append(f' cxn_word_{(index - 1) * 4 + slot}: "{escape(member)}"')
 
     out.append("")
     return "\n".join(out)
@@ -259,25 +262,25 @@ def write_loc(path: str, body: str) -> bool:
     return True
 
 
-def write_effect(path: str, wordle: dict) -> bool:
-    """Repoint the wordle_true_* variables at today's answer.
+def puzzle_id(raw: object, what: str) -> int:
+    """Coerce a puzzle id to an int, or say which service sent something odd."""
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        raise SolutionError(f"{what} id {raw!r} is not a number.") from None
 
-    Only the six numbers are touched - everything else in the file is left byte
-    for byte as it was, so the effect can grow without this clobbering it.
+
+def set_effect_vars(path: str, values: "dict[str, int]", label: str) -> bool:
+    """Rewrite the named set_variable numbers in a scripted effect file.
+
+    Only the numbers are touched - everything else in the file is left byte for
+    byte as it was, so the effect can grow without this clobbering it. A variable
+    that is not already in the file is an error, never a silent insertion.
     """
     loaded = read_text_file(path)
     if loaded is None:
-        raise SolutionError(f"{EFFECT_PATH} is missing; expected the scripted effect to exist.")
+        raise SolutionError(f"{label} is missing; expected the scripted effect to exist.")
     text, had_bom, _ = loaded
-
-    try:
-        puzzle_id = int(wordle["id"])
-    except (TypeError, ValueError):
-        raise SolutionError(f"Wordle id {wordle['id']!r} is not a number.") from None
-
-    values = {"wordle_true_id": puzzle_id}
-    for slot, index in enumerate(letter_indices(wordle["solution"]), start=1):
-        values[f"wordle_true_{slot}"] = index
 
     for name, value in values.items():
         text, hits = effect_var_re(name).subn(
@@ -285,10 +288,24 @@ def write_effect(path: str, wordle: dict) -> bool:
         )
         if hits != 1:
             raise SolutionError(
-                f"No `set_variable = {{ name = {name} value = ... }}` found in {EFFECT_PATH}."
+                f"No `set_variable = {{ name = {name} value = ... }}` found in {label}."
             )
 
     return write_text_file(path, text, had_bom)
+
+
+def write_wordle_effect(path: str, wordle: dict) -> bool:
+    """Point wordle_fetch_solution at today's answer."""
+    values = {"wordle_true_id": puzzle_id(wordle["id"], "Wordle")}
+    for slot, index in enumerate(letter_indices(wordle["solution"]), start=1):
+        values[f"wordle_true_{slot}"] = index
+    return set_effect_vars(path, values, WORDLE_EFFECT_PATH)
+
+
+def write_cxn_effect(path: str, connections: dict) -> bool:
+    """Point cxn_fetch_id at today's Connections puzzle."""
+    values = {"cxn_true_id": puzzle_id(connections["id"], "Connections")}
+    return set_effect_vars(path, values, CXN_EFFECT_PATH)
 
 
 def prepend_change_note(path: str, version: str, date: dt.date) -> bool:
@@ -392,7 +409,8 @@ def main(argv: list[str] | None = None) -> int:
 
     version = f"{date:%y}.{date:%m}{date:%d}"
     loc_path = os.path.join(args.repo_root, LOC_PATH)
-    effect_path = os.path.join(args.repo_root, EFFECT_PATH)
+    wordle_effect_path = os.path.join(args.repo_root, WORDLE_EFFECT_PATH)
+    cxn_effect_path = os.path.join(args.repo_root, CXN_EFFECT_PATH)
     metadata_path = os.path.join(args.repo_root, METADATA_PATH)
     notes_path = os.path.join(args.repo_root, CHANGE_NOTES_PATH)
 
@@ -419,10 +437,13 @@ def main(argv: list[str] | None = None) -> int:
         print("--dry-run: nothing written.\n")
         print(body)
         print()
-        print(f"{EFFECT_PATH}:")
+        print(f"{WORDLE_EFFECT_PATH}:")
         print(f"  wordle_true_id = {wordle['id']}")
         for slot, index in enumerate(letter_indices(wordle["solution"]), start=1):
             print(f"  wordle_true_{slot} = {index:<2} ({wordle['solution'][slot - 1]})")
+        print()
+        print(f"{CXN_EFFECT_PATH}:")
+        print(f"  cxn_true_id = {connections['id']}")
         print()
         print(f"{CHANGE_NOTES_PATH}: would prepend")
         print(f"  # v{version}:")
@@ -431,7 +452,8 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         loc_changed = write_loc(loc_path, body)
-        effect_changed = write_effect(effect_path, wordle)
+        effect_changed = write_wordle_effect(wordle_effect_path, wordle)
+        cxn_effect_changed = write_cxn_effect(cxn_effect_path, connections)
         version, metadata_changed = bump_metadata(metadata_path, version)
         # The entry is keyed on the version, so it only earns a line when the
         # version actually moved.
@@ -442,9 +464,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"::error::{error}", file=sys.stderr)
         return 1
 
-    changed = loc_changed or effect_changed or metadata_changed or notes_changed
+    changed = (
+        loc_changed or effect_changed or cxn_effect_changed
+        or metadata_changed or notes_changed
+    )
     print(f"{LOC_PATH}: {'updated' if loc_changed else 'unchanged'}")
-    print(f"{EFFECT_PATH}: {'updated' if effect_changed else 'unchanged'}")
+    print(f"{WORDLE_EFFECT_PATH}: {'updated' if effect_changed else 'unchanged'}")
+    print(f"{CXN_EFFECT_PATH}: {'updated' if cxn_effect_changed else 'unchanged'}")
     print(f"{METADATA_PATH}: {'version -> ' + version if metadata_changed else 'unchanged'}")
     print(f"{CHANGE_NOTES_PATH}: {'added v' + version if notes_changed else 'unchanged'}")
 
