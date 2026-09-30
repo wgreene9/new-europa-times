@@ -3,7 +3,7 @@
 window = {
 	name = "cxn_window"
 	parentanchor = center
-	size = { 800 680 }
+	size = { 1080 680 }
 	background = { texture = "gfx/interface/icons/connections/connections-bg.dds" }
 	using = bg_age_event_frame
 
@@ -16,7 +16,7 @@ window = {
 			layoutpolicy_vertical = shrinking
 
 			hbox = {
-				margin_top = 80
+				margin_top = 55
 				widget = {
 					text_single = {
 						autoresize = yes
@@ -24,7 +24,7 @@ window = {
 						default_format = "#color_white"
 						text = "Create four groups of four!"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 50
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding	
 						parentanchor = center
@@ -34,10 +34,10 @@ window = {
 
 			# Row 1
 			hbox = {
-				margin_top = 40
-				spacing = 5
+				margin_top = 55
+				spacing = 10
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_1_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_1').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_1_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -47,14 +47,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_1').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_2_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_2').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_1_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -64,14 +64,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_2').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_3_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_3').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_1_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -81,14 +81,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_3').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_4_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_4').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_1_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -98,7 +98,7 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_4').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
@@ -107,7 +107,7 @@ window = {
 
 				# Solution
 				icon = {
-					size = { 655 80 }
+					size = { 990 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_solved_texture_1').GetFlagName)]"
 					visible = "[GetScriptedGui('cxn_solbar_1_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
@@ -116,7 +116,7 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_solved_text_1').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
@@ -125,10 +125,10 @@ window = {
 			}
 
 			hbox = {
-				margin_top = 5
-				spacing = 5
+				margin_top = 10
+				spacing = 10
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_5_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_5').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_2_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -138,14 +138,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_5').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_6_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_6').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_2_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -155,14 +155,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_6').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_7_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_7').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_2_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -172,14 +172,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_7').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_8_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_8').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_2_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -189,7 +189,7 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_8').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
@@ -198,7 +198,7 @@ window = {
 
 				# Solution
 				icon = {
-					size = { 655 80 }
+					size = { 990 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_solved_texture_2').GetFlagName)]"
 					visible = "[GetScriptedGui('cxn_solbar_2_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
@@ -207,7 +207,7 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_solved_text_2').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
@@ -216,10 +216,10 @@ window = {
 			}
 
 			hbox = {
-				margin_top = 5
-				spacing = 5
+				margin_top = 10
+				spacing = 10
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_9_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_9').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_3_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -229,14 +229,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_9').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_10_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_10').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_3_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -246,14 +246,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_10').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_11_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_11').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_3_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -263,14 +263,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_11').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_12_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_12').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_3_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -280,7 +280,7 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_12').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
@@ -289,7 +289,7 @@ window = {
 
 				# Solution
 				icon = {
-					size = { 655 80 }
+					size = { 990 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_solved_texture_3').GetFlagName)]"
 					visible = "[GetScriptedGui('cxn_solbar_3_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
@@ -298,7 +298,7 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_solved_text_3').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
@@ -307,10 +307,10 @@ window = {
 			}
 
 			hbox = {
-				margin_top = 5
-				spacing = 5
+				margin_top = 10
+				spacing = 10
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_13_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_13').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_4_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -320,14 +320,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_13').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding	
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_14_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_14').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_4_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -337,14 +337,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_14').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_15_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_15').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_4_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -354,14 +354,14 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_15').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 160 80 }
+					size = { 240 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_button_16_selected').GetFlagName)]"
 					onclick = "[GetScriptedGui('cxn_button_16').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_row_4_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -371,7 +371,7 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_flag_16').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
@@ -380,7 +380,7 @@ window = {
 
 				# Solution
 				icon = {
-					size = { 655 80 }
+					size = { 990 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('cxn_solved_texture_4').GetFlagName)]"
 					visible = "[GetScriptedGui('cxn_solbar_4_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 					text_single = {
@@ -389,7 +389,7 @@ window = {
 						default_format = "#color_black"
 						text = "[GetPlayer.MakeScope.Var('cxn_solved_text_4').GetFlagName]"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 24
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
@@ -398,18 +398,18 @@ window = {
 			}
 
 			hbox = {
-				margin_top = 20
+				margin_top = 25
 				spacing = 10
 				
 				widget = {
-					size = { 128 10 }
+					size = { 300 40 }
 					text_single = {
 						autoresize = yes
 						using = Font_Size_Small
 						default_format = "#color_white"
 						text = "Mistakes Remaining:"
 						using = Font_Type_Headers
-						fontsize = 14
+						fontsize = 30
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding	
 						parentanchor = center
@@ -417,45 +417,45 @@ window = {
 				}
 
 				icon = {
-					size = { 10 10 }
+					size = { 30 30 }
 					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_1').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 10 10 }
+					size = { 30 30 }
 					visible = "[GetScriptedGui('cxn_mistake_1_inv').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 10 10 }
+					size = { 30 30 }
 					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_2').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 10 10 }
+					size = { 30 30 }
 					visible = "[GetScriptedGui('cxn_mistake_2_inv').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 10 10 }
+					size = { 30 30 }
 					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_3').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 10 10 }
+					size = { 30 30 }
 					visible = "[GetScriptedGui('cxn_mistake_3_inv').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 10 10 }
+					size = { 30 30 }
 					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_4').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 10 10 }
+					size = { 30 30 }
 					visible = "[GetScriptedGui('cxn_mistake_4_inv').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 			}
 
 			hbox = {
-				margin_top = 20
+				margin_top = 25
 				spacing = 10
 				button = {
 					size = { 90 40 }
@@ -545,7 +545,7 @@ window = {
 			}
 
 			hbox = {
-				margin_top = 50
+				margin_top = 30
 				# Close button
 				button_regular_diamond = {
 					name = "goto_button"
