@@ -35,3 +35,9 @@ wordle_remove_screenshot_mode_v = {
 		}
 	}
 }
+
+wordle_invalid_input_text_v = {
+	is_shown = {
+		has_variable = wordle_invalid_input
+	}
+}
