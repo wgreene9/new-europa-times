@@ -3,7 +3,7 @@
 window = {
 	name = "cxn_window"
 	parentanchor = center
-	size = { 1080 680 }
+	size = { 1080 650 }
 	background = { texture = "gfx/interface/icons/connections/connections-bg.dds" }
 	using = bg_age_event_frame
 
@@ -24,7 +24,7 @@ window = {
 						default_format = "#color_white"
 						text = "Create four groups of four!"
 						using = Font_Type_Headers
-						fontsize = 50
+						fontsize = 25
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding	
 						parentanchor = center
@@ -402,14 +402,14 @@ window = {
 				spacing = 10
 				
 				widget = {
-					size = { 300 40 }
+					size = { 220 40 }
 					text_single = {
 						autoresize = yes
 						using = Font_Size_Small
 						default_format = "#color_white"
 						text = "Mistakes Remaining:"
 						using = Font_Type_Headers
-						fontsize = 30
+						fontsize = 22
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding	
 						parentanchor = center
@@ -417,39 +417,39 @@ window = {
 				}
 
 				icon = {
-					size = { 30 30 }
+					size = { 22 22 }
 					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_1').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 30 30 }
+					size = { 22 22 }
 					visible = "[GetScriptedGui('cxn_mistake_1_inv').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 30 30 }
+					size = { 22 22 }
 					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_2').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 30 30 }
+					size = { 22 22 }
 					visible = "[GetScriptedGui('cxn_mistake_2_inv').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 30 30 }
+					size = { 22 22 }
 					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_3').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 30 30 }
+					size = { 22 22 }
 					visible = "[GetScriptedGui('cxn_mistake_3_inv').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 30 30 }
+					size = { 22 22 }
 					texture = "gfx/interface/icons/connections/circle.dds"
 					visible = "[GetScriptedGui('cxn_mistake_4').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 				icon = {
-					size = { 30 30 }
+					size = { 22 22 }
 					visible = "[GetScriptedGui('cxn_mistake_4_inv').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
 				}
 			}
@@ -458,7 +458,7 @@ window = {
 				margin_top = 25
 				spacing = 10
 				button = {
-					size = { 90 40 }
+					size = { 113 50 }
 					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					onclick = "[GetScriptedGui('cxn_shuffle_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_show_shuffle_button').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -468,14 +468,14 @@ window = {
 						default_format = "#color_black"
 						text = "Shuffle"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 22
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding	
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 120 40 }
+					size = { 150 50 }
 					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					onclick = "[GetScriptedGui('cxn_deselect_all_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_deselect_all_clickable').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -485,14 +485,14 @@ window = {
 						default_format = "#color_black"
 						text = "Deselect All"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 22
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 120 40 }
+					size = { 150 50 }
 					enabled = no
 					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					visible = "[GetScriptedGui('cxn_deselect_all_unclickable').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -502,14 +502,14 @@ window = {
 						default_format = "#color_black"
 						text = "Deselect All"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 22
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 90 40 }
+					size = { 113 50 }
 					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					onclick = "[GetScriptedGui('cxn_submit_wrapper').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('cxn_submit_clickable').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -519,14 +519,14 @@ window = {
 						default_format = "#color_black"
 						text = "Submit"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 22
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center
 					}
 				}
 				button = {
-					size = { 90 40 }
+					size = { 113 50 }
 					enabled = no
 					texture = "gfx/interface/icons/connections/button-tex.DDS"
 					visible = "[GetScriptedGui('cxn_submit_unclickable').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
@@ -536,7 +536,7 @@ window = {
 						default_format = "#color_black"
 						text = "Submit"
 						using = Font_Type_Headers
-						fontsize = 18
+						fontsize = 22
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding
 						parentanchor = center

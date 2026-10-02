@@ -4,7 +4,8 @@ window = {
 	name = "wordle_window"
 	parentanchor = center
 	size = { 500 800 }
-	background = { texture = "gfx/interface/icons/wordle/blank-white.dds" }
+	background = { texture = "gfx/interface/icons/connections/connections-bg.dds" }
+	using = bg_age_event_frame
 
 	widget = {
 		size = { 100% 100% }

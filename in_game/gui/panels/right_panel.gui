@@ -40,7 +40,7 @@ types RightPanelTypes
 							onclick = "[ExecuteConsoleCommand( Select_CString( GetVariableSystem.Exists('wordle_window_open'), 'gui.ClearWidgets wordle_window', 'gui.createwidget gui/wordle_window.gui wordle_window' ) )]"
 							onclick = "[GetVariableSystem.Toggle('wordle_window_open')]"
 
-							texture = "gfx/interface/icons/wordle/letter-A-green.dds"
+							texture = "gfx/interface/icons/wordle/wordle-icon.dds"
 						}
 						# connections
 						button = {
@@ -50,7 +50,7 @@ types RightPanelTypes
 							onclick = "[ExecuteConsoleCommand( Select_CString( GetVariableSystem.Exists('cxn_window_open'), 'gui.ClearWidgets cxn_window', 'gui.createwidget gui/cxn_window.gui cxn_window' ) )]"
 							onclick = "[GetVariableSystem.Toggle('cxn_window_open')]"
 
-							texture = "gfx/interface/icons/connections/tile-selected.dds"
+							texture = "gfx/interface/icons/connections/connections-icon.dds"
 						}
 						#expand = {}
 					}
