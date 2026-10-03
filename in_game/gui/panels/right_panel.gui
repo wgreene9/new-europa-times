@@ -94,15 +94,6 @@ types RightPanelTypes
 								modify_texture = {
 									using = color_mid_blue_texture
 								}
-		
-								modify_texture = {
-									texture = "gfx/interface/component_overlay/gold_overlay_circle.dds"
-									texture_density = 2
-									spriteType = stretched
-									spriteborder = { 250 250 }
-									blend_mode = overlay
-									alpha = 0.7
-								}
 							}
 		
 							background = {

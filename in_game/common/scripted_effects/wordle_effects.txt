@@ -538,6 +538,9 @@ wordle_press_enter = {
                 limit = {
                     wordle_win = yes
                 }
+                # remove invalid input
+                remove_variable = wordle_invalid_input
+
                 # increement row cursor and reset col cursor (for the show functionality)
                 change_variable = { name = wordle_row_cursor add = 1 }
                 set_variable = { name = wordle_col_cursor value = 1 }
@@ -578,7 +581,10 @@ wordle_press_enter = {
                         }
                     }
                 }
-                # increement row cursor and reset col cursor
+                # Remove invalid word
+                remove_variable = wordle_invalid_input
+
+                # increment row cursor and reset col cursor
                 change_variable = { name = wordle_row_cursor add = 1 }
                 set_variable = { name = wordle_col_cursor value = 1 }
 
@@ -590,10 +596,20 @@ wordle_press_enter = {
                     limit = {
                         var:wordle_row_cursor = 7
                     }
+                    # Remove invalid word
+                    remove_variable = wordle_invalid_input
                     # lose game
                     set_variable = { name = wordle_game value = 3 }
                 }
             }
+            # Mark word as invalid
+            else = {
+                set_variable = wordle_invalid_input
+            }
+        }
+        # Mark word as too short
+        else = {
+            set_variable = wordle_invalid_input
         }
     }
 	
