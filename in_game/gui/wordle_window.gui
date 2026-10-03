@@ -191,60 +191,70 @@ window = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_q').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_q').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "detach_damaged_ship"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_w').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_w').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "camera_up"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_e').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_e').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "toggle_alert_stash"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_r').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_r').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_r"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_t').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_t').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_t"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_y').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_y').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_y"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_u').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_u').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_u"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_i').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_i').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_i"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_o').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_o').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_o"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_p').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_p').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_p"
 				}
 			}
@@ -256,54 +266,63 @@ window = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_a').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_a').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "camera_left"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_s').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_s').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "camera_down"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_d').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_d').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "camera_right"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_f').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_f').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "find_province"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_g').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_g').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "merge_units"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_h').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_h').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "split_half"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_j').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_j').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "detach_siege"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_k').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_k').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "consolidate"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_l').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_l').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_l"
 				}
 			}
@@ -315,54 +334,63 @@ window = {
 					size = { 60 40 }
 					texture = "gfx/interface/icons/wordle/enter-white.dds"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_enter').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_enter"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_z').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_z').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "macro_builder"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_x').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_x').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "load_on_fleet"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_c').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_c').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_c"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_v').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_v').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_v"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_b').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_b').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "reorg_units"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_n').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_n').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_n"
 				}
 				button = {
 					size = { 40 40 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_keyboard_m').GetFlagName)]"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_m').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "mapmode_menu"
 				}
 				button = {
 					size = { 60 40 }
 					texture = "gfx/interface/icons/wordle/backspace-white.dds"
 					onclick = "[GetScriptedGui('wordle_keyboard_wrapper_backspace').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+					tooltip_enabled = no
 					input_action = "wordle_input_backspace"
 				}
 			}
