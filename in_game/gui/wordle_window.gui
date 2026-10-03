@@ -3,7 +3,7 @@
 window = {
 	name = "wordle_window"
 	parentanchor = center
-	size = { 520 890 }
+	size = { 504 850 }
 	#background = { texture = "gfx/interface/icons/wordle/wordle-background.dds" }
 	using = bg_panel_tabs
 	blockoverride "bg_panel_tabs_color" {
@@ -30,7 +30,7 @@ window = {
 			# Row 1
 			hbox = {
 				spacing = 3
-				margin_top = 55
+				margin_top = 46
 				icon = {
 					size = { 80 80 }
 					texture = "[GetConceptTexture(GetPlayer.MakeScope.Var('show_wordle_r1_c1').GetFlagName)]"
@@ -183,9 +183,27 @@ window = {
 				}
 			}
 
+			hbox = {
+				margin_top = 30
+				widget = {
+					text_single = {
+						visible = "[GetScriptedGui('wordle_invalid_input_text_v').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End )]"
+						autoresize = yes
+						using = Font_Size_Small
+						default_format = "#color_red"
+						text = "Last entered word was invalid or incomplete!"
+						using = Font_Type_Headers
+						fontsize = 18
+						align = center|nobaseline
+						layoutpolicy_horizontal = expanding	
+						parentanchor = center
+					}
+				}
+			}
+
 			# Keyboard
 			hbox = {
-				margin_top = 50
+				margin_top = 30
 				spacing = 2
 				button = {
 					size = { 40 40 }
@@ -399,12 +417,11 @@ window = {
 				margin_top = 30
 				widget = {
 					text_single = {
-						visible = "[GetScriptedGui('wordle_invalid_input_text_v').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End )]"
 						autoresize = yes
 						using = Font_Size_Small
-						default_format = "#color_red"
-						text = "Last entered word was invalid or incomplete!"
-						using = Font_Type_Headers
+						default_format = "#color_yellow"
+						text = "You can input using your PC keyboard!"
+						using = Font_Type_Flavor
 						fontsize = 18
 						align = center|nobaseline
 						layoutpolicy_horizontal = expanding	
@@ -414,7 +431,7 @@ window = {
 			}
 
 			hbox = {
-				margin_top = 30
+				margin_top = 38
 				spacing = 15
 				# Close button
 				button_regular_diamond = {
@@ -453,23 +470,6 @@ window = {
 					
 					onclick = "[GetScriptedGui('wordle_remove_screenshot_mode_sgui').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
 					visible = "[GetScriptedGui('wordle_remove_screenshot_mode_v').IsShown( GuiScope.SetRoot( GetPlayer.MakeScope ).End )]"
-				}
-			}
-
-			hbox = {
-				margin_top = 30
-				widget = {
-					text_single = {
-						autoresize = yes
-						using = Font_Size_Small
-						default_format = "#color_yellow"
-						text = "You can input using your PC keyboard!"
-						using = Font_Type_Flavor
-						fontsize = 18
-						align = center|nobaseline
-						layoutpolicy_horizontal = expanding	
-						parentanchor = center
-					}
 				}
 			}
 			
