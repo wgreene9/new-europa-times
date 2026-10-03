@@ -1,4 +1,4 @@
-wordle_screenshot_mode_sgui = {
+﻿wordle_screenshot_mode_sgui = {
 	effect = {
 		wordle_screenshot_mode = yes
 		set_variable = wordle_screenshot_mode_var

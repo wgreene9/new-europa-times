@@ -1,4 +1,4 @@
-wordle_fetch_solution = {
+﻿wordle_fetch_solution = {
 	set_variable = { name = wordle_true_id value = 1932 }
 	set_variable = { name = wordle_true_1 value = 16 }
 	set_variable = { name = wordle_true_2 value = 5 }

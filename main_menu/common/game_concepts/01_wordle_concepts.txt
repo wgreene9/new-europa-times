@@ -1,4 +1,4 @@
-blank_white = {
+﻿blank_white = {
 	texture = "wordle/blank-white"
 }
 

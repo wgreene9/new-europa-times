@@ -41,6 +41,7 @@ types RightPanelTypes
 							onclick = "[GetVariableSystem.Toggle('wordle_window_open')]"
 
 							texture = "gfx/interface/icons/wordle/wordle-icon.dds"
+							tooltip_enabled = no
 						}
 						# connections
 						button = {
@@ -51,6 +52,7 @@ types RightPanelTypes
 							onclick = "[GetVariableSystem.Toggle('cxn_window_open')]"
 
 							texture = "gfx/interface/icons/connections/connections-icon.dds"
+							tooltip_enabled = no
 						}
 						#expand = {}
 					}
