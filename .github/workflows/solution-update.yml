@@ -2,7 +2,7 @@
 
 # Pulls the day's Wordle and Connections answers into the mod, bumps the version,
 # commits to main, then hands off to the toolkit's Create Release workflow so the
-# dev Workshop item picks the update up.
+# release Workshop item picks the update up.
 #
 # Both puzzles come from the NYT service keyed by print date, and both are
 # populated well ahead of the midnight US Eastern rollover, so a run can ask for
@@ -122,10 +122,10 @@ jobs:
           gh workflow run cmt-create-release.yml \
             --repo "${{ github.repository }}" \
             --ref main \
-            -f channel=dev \
+            -f channel=release \
             -f publish=true \
             -f upload-workshop-description=false \
             -f upload-change-notes=true \
             -f upload-submods=false
-          echo "Dispatched Create Release (channel: dev) for $VERSION." >> "$GITHUB_STEP_SUMMARY"
+          echo "Dispatched Create Release (channel: release) for $VERSION." >> "$GITHUB_STEP_SUMMARY"
           echo "${{ github.server_url }}/${{ github.repository }}/actions/workflows/cmt-create-release.yml" >> "$GITHUB_STEP_SUMMARY"
