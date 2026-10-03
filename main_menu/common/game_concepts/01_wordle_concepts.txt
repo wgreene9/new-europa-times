@@ -14,14 +14,6 @@ blank_green = {
 	texture = "wordle/blank-green"
 }
 
-backspace_white = {
-	texture = "wordle/backspace_white"
-}
-
-enter_white = {
-	texture = "wordle/enter_white"
-}
-
 letter_A_white = {
 	texture = "wordle/letter-A-white"
 }
