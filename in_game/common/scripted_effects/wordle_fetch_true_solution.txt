@@ -1,8 +1,8 @@
 ﻿wordle_fetch_solution = {
-	set_variable = { name = wordle_true_id value = 1938 }
-	set_variable = { name = wordle_true_1 value = 13 }
-	set_variable = { name = wordle_true_2 value = 1 }
-	set_variable = { name = wordle_true_3 value = 10 }
-	set_variable = { name = wordle_true_4 value = 15 }
-	set_variable = { name = wordle_true_5 value = 18 }
+	set_variable = { name = wordle_true_id value = 1939 }
+	set_variable = { name = wordle_true_1 value = 2 }
+	set_variable = { name = wordle_true_2 value = 21 }
+	set_variable = { name = wordle_true_3 value = 13 }
+	set_variable = { name = wordle_true_4 value = 16 }
+	set_variable = { name = wordle_true_5 value = 25 }
 }
